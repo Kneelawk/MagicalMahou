@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.kneelawk.mama.mixin.impl",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "server": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
