@@ -1,6 +1,6 @@
-package com.kneelawk.mama.mixin.impl;
+package com.kneelawk.magicalmahou.mixin.impl;
 
-import com.kneelawk.mama.mixin.api.PlayerEntityRendererEvents;
+import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.LivingEntityRenderer;

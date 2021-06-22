@@ -1,6 +1,6 @@
-package com.kneelawk.mama.client.render.player
+package com.kneelawk.magicalmahou.client.render.player
 
-import com.kneelawk.mama.MMConstants.id
+import com.kneelawk.magicalmahou.MMConstants.id
 import dev.monarkhes.myron.api.Myron
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment

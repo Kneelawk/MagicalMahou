@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "mama",
+  "id": "magical-mahou",
   "version": "${version}",
   "name": "Magical Mahou",
   "description": "A mod that allows you to transform into a magical girl/person.",
@@ -12,21 +12,21 @@
     "sources": "https://github.com/Kneelawk/MagialMahou"
   },
   "license": "MIT",
-  "icon": "assets/mama/icon.png",
+  "icon": "assets/magical-mahou/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.kneelawk.mama.MagicalMahouModKt::init"
+      "com.kneelawk.magicalmahou.MagicalMahouModKt::init"
     ],
     "client": [
-      "com.kneelawk.mama.client.MagicalMahouClientModKt::init"
+      "com.kneelawk.magicalmahou.client.MagicalMahouClientModKt::init"
     ],
     "server": [
-      "com.kneelawk.mama.server.MagicalMahouServerModKt::init"
+      "com.kneelawk.magicalmahou.server.MagicalMahouServerModKt::init"
     ]
   },
   "mixins": [
-    "mama.mixins.json"
+    "magical-mahou.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.9.2",

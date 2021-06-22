@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.kneelawk.mama.mixin.impl",
+  "package": "com.kneelawk.magicalmahou.mixin.impl",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
   ],

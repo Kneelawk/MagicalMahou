@@ -1,4 +1,4 @@
-package com.kneelawk.mama.mixin.api;
+package com.kneelawk.magicalmahou.mixin.api;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;

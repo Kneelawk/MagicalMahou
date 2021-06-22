@@ -88,8 +88,8 @@ dependencies {
         exclude group: "net.fabricmc.fabric-api"
     }
 
-    // Only use canvas if the com.kneelawk.mama.usecanvas system property is set
-    if (Boolean.parseBoolean(System.getProperty("com.kneelawk.mama.usecanvas", "false"))) {
+    // Only use canvas if the com.kneelawk.magicalmahou.usecanvas system property is set
+    if (Boolean.parseBoolean(System.getProperty("com.kneelawk.magicalmahou.usecanvas", "false"))) {
         modRuntime("grondag:canvas-mc117-1.17:${project.canvas_version}") {
             exclude group: "net.fabricmc.fabric-api"
         }
