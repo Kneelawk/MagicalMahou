@@ -5,6 +5,7 @@
   "mixins": [
   ],
   "client": [
+    "MatrixStackEntryAccessor",
     "PlayerEntityRendererMixin"
   ],
   "server": [

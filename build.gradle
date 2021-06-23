@@ -11,6 +11,10 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
+minecraft {
+    accessWidener = file("src/main/resources/magical-mahou.accesswidener")
+}
+
 repositories {
     maven { url = "https://maven.fabricmc.net/" }
     maven {
