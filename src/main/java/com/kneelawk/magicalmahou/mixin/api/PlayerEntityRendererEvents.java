@@ -13,15 +13,15 @@ import java.util.function.Consumer;
 public class PlayerEntityRendererEvents {
 
     public static final Event<AddFeatures> ADD_FEATURES =
-            EventFactory.createArrayBacked(AddFeatures.class, (renderer, ctx, consumer) -> {
-            }, callbacks -> (renderer, ctx, consumer) -> {
+            EventFactory.createArrayBacked(AddFeatures.class, (renderer, ctx, slim, consumer) -> {
+            }, callbacks -> (renderer, ctx, slim, consumer) -> {
                 for (final AddFeatures callback : callbacks) {
-                    callback.addFeatures(renderer, ctx, consumer);
+                    callback.addFeatures(renderer, ctx, slim, consumer);
                 }
             });
 
     public interface AddFeatures {
-        void addFeatures(PlayerEntityRenderer renderer, EntityRendererFactory.Context ctx,
+        void addFeatures(PlayerEntityRenderer renderer, EntityRendererFactory.Context ctx, boolean slim,
                          Consumer<FeatureRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>>> consumer);
     }
 }

@@ -23,6 +23,6 @@ public abstract class PlayerEntityRendererMixin
     @Inject(method = "<init>", at = @At("RETURN"))
     public void onInit(EntityRendererFactory.Context ctx, boolean slim, CallbackInfo ci) {
         PlayerEntityRendererEvents.ADD_FEATURES.invoker()
-                .addFeatures((PlayerEntityRenderer) (Object) this, ctx, this::addFeature);
+                .addFeatures((PlayerEntityRenderer) (Object) this, ctx, slim, this::addFeature);
     }
 }

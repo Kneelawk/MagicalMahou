@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.event.client.ClientSpriteRegistryCallback
 import net.minecraft.client.texture.SpriteAtlasTexture
 
 fun init() {
-    PlayerEntityRendererEvents.ADD_FEATURES.register { renderer, _, consumer ->
+    PlayerEntityRendererEvents.ADD_FEATURES.register { renderer, _, _, consumer ->
         println("Adding cat ears...")
         consumer.accept(CatEarsFeatureRenderer(renderer))
     }
