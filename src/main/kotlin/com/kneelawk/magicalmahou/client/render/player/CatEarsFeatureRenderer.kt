@@ -15,6 +15,7 @@ import net.minecraft.client.render.entity.model.BipedEntityModel
 import net.minecraft.client.render.entity.model.EntityModelPartNames
 import net.minecraft.client.render.entity.model.PlayerEntityModel
 import net.minecraft.client.util.math.MatrixStack
+import net.minecraft.util.math.Quaternion
 import net.minecraft.util.math.Vec3f
 
 @Environment(EnvType.CLIENT)
@@ -31,7 +32,7 @@ class CatEarsFeatureRenderer(
                     listOf(
                         ObjModelPart.ObjPart(
                             id("models/misc/cat_ears"), Vec3f(0f, -0.5f, 0f),
-                            Vec3f.POSITIVE_X.getDegreesQuaternion(180f)
+                            Quaternion.IDENTITY
                         )
                     ),
                     mapOf()
