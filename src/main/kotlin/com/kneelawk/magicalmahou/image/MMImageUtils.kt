@@ -10,6 +10,7 @@ import java.nio.file.Files
 import java.util.*
 
 object MMImageUtils {
+    // FIXME: This assumes that physical server and physical client are the same as logical server and logical client!
     lateinit var IMAGE_FACTORY: ImageWrapperFactory
 
     fun writeToPacket(packet: PacketByteBuf, image: ImageWrapper) {

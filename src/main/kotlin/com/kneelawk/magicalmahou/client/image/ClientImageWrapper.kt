@@ -6,6 +6,7 @@ import net.fabricmc.api.Environment
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.client.texture.NativeImageBackedTexture
 import org.lwjgl.system.MemoryUtil
+import java.nio.file.Files
 import java.nio.file.Path
 
 @Environment(EnvType.CLIENT)
@@ -34,11 +35,26 @@ class ClientImageWrapper(private val image: NativeImageBackedTexture) : ImageWra
     override fun decodePNGData(data: ByteArray) {
         // TODO: see if this method of throwing out the old image and constructing a new one is too slow.
         val buf = MemoryUtil.memAlloc(data.size)
-        buf.put(0, data)
-        val newImage = NativeImage.read(NativeImage.Format.ABGR, buf)
-        MemoryUtil.memFree(buf)
+        val newImage: NativeImage
+        try {
+            buf.put(0, data)
+            newImage = NativeImage.read(NativeImage.Format.ABGR, buf)
+        } finally {
+            MemoryUtil.memFree(buf)
+        }
 
         if (newImage.width != width || newImage.height != height) {
+            throw IllegalArgumentException("PNG dimensions do not match current ones")
+        }
+
+        image.image = newImage
+    }
+
+    override fun loadFromFile(path: Path) {
+        val newImage = NativeImage.read(NativeImage.Format.ABGR, Files.newInputStream(path))
+
+        if (newImage.width != width || newImage.height != height) {
+            // TODO: consider whether to just log and ignore this because this could happen is the player tries to open a texture with the wrong dimensions
             throw IllegalArgumentException("PNG dimensions do not match current ones")
         }
 

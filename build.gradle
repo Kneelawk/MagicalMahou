@@ -83,10 +83,15 @@ dependencies {
         include "io.github.onyxstudios.Cardinal-Components-API:${component}:${project.cardinal_version}"
     }
 
-    modImplementation("dev.monarkhes:myron:1.6.0") {
+    modImplementation("dev.monarkhes:myron:${project.myron_version}") {
         exclude group: 'net.fabricmc.fabric-api'
     }
-    include "dev.monarkhes:myron:1.6.0"
+    include "dev.monarkhes:myron:${project.myron_version}"
+
+    modImplementation("alexiil.mc.lib:libnetworkstack-base:${project.lns_version}") {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    include "alexiil.mc.lib:libnetworkstack-base:${project.lns_version}"
 
     modRuntime("com.terraformersmc:modmenu:${project.modmenu_version}") {
         exclude group: "net.fabricmc.fabric-api"

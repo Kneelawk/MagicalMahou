@@ -16,5 +16,9 @@ interface ImageWrapper {
 
     fun decodePNGData(data: ByteArray)
 
+    // TODO: Design a better interface for this, one that can handle players attempting to open legacy images and incorrect images.
+    @Throws(IOException::class)
+    fun loadFromFile(path: Path)
+
     fun update()
 }
