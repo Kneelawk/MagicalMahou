@@ -12,11 +12,13 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import javax.imageio.ImageIO
 
 class ServerSkinManager(override val imageWidth: Int, override val imageHeight: Int) : SkinManager {
     private val skinMap = hashMapOf<UUID, BufferedImage>()
-    private val toRemove = ArrayDeque<UUID>()
+    // Disconnect events take place on a different thread from tick events
+    private val toRemove = ConcurrentLinkedQueue<UUID>()
 
     init {
         ServerLifecycleEvents.SERVER_STOPPED.register {
