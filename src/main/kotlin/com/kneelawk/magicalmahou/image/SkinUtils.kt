@@ -11,35 +11,32 @@ object SkinUtils {
     /**
      * Stores a player skin to the designated player skin location based on the player's UUID.
      *
+     * @param idStr the string used for determining the location of the skin in the filesystem.
      * @param uuid the UUID of the player to load the skin for.
      * @param world the world that the player is in (used to tell things like logical side and save dir).
      */
-    fun storePlayerSkin(uuid: UUID, world: World) {
+    fun storePlayerSkin(idStr: String, uuid: UUID, world: World) {
         println("Storing player skin...")
-        val uuidStr = uuid.toString()
-        val skinDir = SaveDirUtils.getPlayerSkinStorageDir(world).resolve(uuidStr.substring(0, 2))
-        Files.createDirectories(skinDir)
-        val skinPath = skinDir.resolve(uuidStr)
+        val skinPath = SaveDirUtils.getPlayerSkinStorageFile(world, idStr, true)
         SkinManagers.getPlayerSkinManger(world).storePNGToFile(skinPath, uuid)
     }
 
     /**
      * Loads a player skin from the designated player skin location based on the player's UUID.
      *
+     * @param idStr the string used for determining the location of the skin in the filesystem.
      * @param uuid the UUID of the player to load the skin for.
      * @param world the world that the player is in (used to tell things like logical side and save dir).
      * @return `true` if the load operation was successful, `false` otherwise.
      * @throws InvalidImageException if there was an error while loading the image.
      */
     @Throws(InvalidImageException::class)
-    fun loadPlayerSkin(uuid: UUID, world: World): Boolean {
+    fun loadPlayerSkin(idStr: String, uuid: UUID, world: World): Boolean {
         println("Loading player skin...")
-        val uuidStr = uuid.toString()
-        val skinDir = SaveDirUtils.getSkinStorageDir(world).resolve(uuidStr.substring(0, 2))
-        val skinPath = skinDir.resolve(uuidStr)
+        val skinPath = SaveDirUtils.getPlayerSkinStorageFile(world, idStr, false)
 
         if (!Files.exists(skinPath)) {
-            MMLog.warn("Skin for $uuidStr does not exist")
+            MMLog.warn("Skin for $idStr does not exist")
             return false
         }
 

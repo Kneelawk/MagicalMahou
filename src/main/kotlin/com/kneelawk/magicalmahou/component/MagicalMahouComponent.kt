@@ -11,6 +11,7 @@ import com.kneelawk.magicalmahou.net.MMNetIds
 import com.kneelawk.magicalmahou.net.setC2SReadWrite
 import com.kneelawk.magicalmahou.net.setC2SReceiver
 import com.kneelawk.magicalmahou.net.setS2CReadWrite
+import com.kneelawk.magicalmahou.util.SaveDirUtils
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.tick.ClientTickingComponent
 import net.minecraft.client.MinecraftClient
@@ -165,22 +166,26 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
     override fun readFromNbt(tag: NbtCompound) {
         isTransformed = tag.getBoolean("transformed")
-        val previousPlayerId = if (tag.contains("playerId")) {
-            tag.getUuid("playerId")
+
+        val idStr = if (tag.contains("skinIdStr")) {
+            tag.getString("skinIdStr")
         } else {
-            playerId
+            SaveDirUtils.getPlayerIdStr(provider)
         }
 
-        needsC2SSkinSync = !SkinUtils.loadPlayerSkin(previousPlayerId, provider.world)
+        needsC2SSkinSync = !SkinUtils.loadPlayerSkin(idStr, playerId, provider.world)
         playerSkinManager.update(playerId)
     }
 
     override fun writeToNbt(tag: NbtCompound) {
         tag.putBoolean("transformed", isTransformed)
 
+        val idStr = SaveDirUtils.getPlayerIdStr(provider)
+        tag.putString("skinIdStr", idStr)
+
         // Only save the skin if we know it's valid
         if (!needsC2SSkinSync) {
-            SkinUtils.storePlayerSkin(playerId, provider.world)
+            SkinUtils.storePlayerSkin(idStr, playerId, provider.world)
         }
     }
 

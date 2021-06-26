@@ -2,6 +2,7 @@ package com.kneelawk.magicalmahou.client
 
 import com.kneelawk.magicalmahou.component.MMComponents
 import com.kneelawk.magicalmahou.image.SkinUtils
+import com.kneelawk.magicalmahou.util.SaveDirUtils
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.minecraft.client.option.KeyBinding
@@ -31,7 +32,7 @@ object MMKeys {
             while (PRINT_SKIN.wasPressed()) {
                 client.player?.let { player ->
                     player.sendMessage(LiteralText("Printing skin..."), false)
-                    SkinUtils.storePlayerSkin(player.uuid, player.world)
+                    SkinUtils.storePlayerSkin(SaveDirUtils.getPlayerIdStr(player), player.uuid, player.world)
                     player.sendMessage(LiteralText("Skin printed."), false)
                 }
             }
