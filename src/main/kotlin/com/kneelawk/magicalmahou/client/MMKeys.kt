@@ -1,6 +1,7 @@
 package com.kneelawk.magicalmahou.client
 
-import com.kneelawk.magicalmahou.image.MMImageUtils
+import com.kneelawk.magicalmahou.component.MMComponents
+import com.kneelawk.magicalmahou.image.SkinUtils
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.minecraft.client.option.KeyBinding
@@ -10,6 +11,7 @@ import org.lwjgl.glfw.GLFW
 
 object MMKeys {
     lateinit var PRINT_SKIN: KeyBinding
+    lateinit var TRANSFORM: KeyBinding
 
     fun register() {
         PRINT_SKIN = KeyBindingHelper.registerKeyBinding(
@@ -18,15 +20,33 @@ object MMKeys {
                 "category.magical-mahou.general"
             )
         )
+        TRANSFORM = KeyBindingHelper.registerKeyBinding(
+            KeyBinding(
+                "key.magical-mahou.transform", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R,
+                "category.magical-mahou.general"
+            )
+        )
 
         ClientTickEvents.END_CLIENT_TICK.register { client ->
             while (PRINT_SKIN.wasPressed()) {
                 client.player?.let { player ->
-                    // TODO: Have this print the magical skin once that's implemented
                     player.sendMessage(LiteralText("Printing skin..."), false)
-                    val skin = MMImageUtils.IMAGE_FACTORY.default()
-                    MMImageUtils.writeForPlayer(player, skin)
+                    SkinUtils.storePlayerSkin(player.uuid, player.world)
                     player.sendMessage(LiteralText("Skin printed."), false)
+                }
+            }
+
+            while (TRANSFORM.wasPressed()) {
+                client.player?.let { player ->
+                    val component = MMComponents.GENERAL[player]
+
+                    if (component.isTransformed) {
+                        player.sendMessage(LiteralText("Un-Transforming..."), false)
+                    } else {
+                        player.sendMessage(LiteralText("Transforming..."), false)
+                    }
+
+                    component.clientRequestTransform(!component.isTransformed)
                 }
             }
         }

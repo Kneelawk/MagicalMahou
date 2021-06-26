@@ -70,10 +70,10 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-    modImplementation("io.github.ladysnake:satin:${satin_version}") {
+    modImplementation("io.github.ladysnake:satin:${project.satin_version}") {
         exclude group: 'net.fabricmc.fabric-api'
     }
-    include "io.github.ladysnake:satin:${satin_version}"
+    include "io.github.ladysnake:satin:${project.satin_version}"
 
     def cardinalComponents = ["cardinal-components-base", "cardinal-components-util", "cardinal-components-entity"]
     cardinalComponents.each { component ->
@@ -107,8 +107,9 @@ dependencies {
         }
     }
 
-    compileOnly "org.apiguardian:apiguardian-api:${apiguardian_version}"
-    compileOnly "com.google.code.findbugs:jsr305:${jsr305_version}"
+    compileOnly "org.apiguardian:apiguardian-api:${project.apiguardian_version}"
+    compileOnly "com.google.code.findbugs:jsr305:${project.jsr305_version}"
+    compileOnly "com.demonwav.mcdev:annotations:${project.mcdev_annotations_version}"
 }
 
 processResources {

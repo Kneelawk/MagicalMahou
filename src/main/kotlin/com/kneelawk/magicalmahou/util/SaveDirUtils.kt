@@ -24,4 +24,8 @@ object SaveDirUtils {
     fun getSkinStorageDir(world: World): Path {
         return getStorageDir(world).resolve("skins")
     }
+
+    fun getPlayerSkinStorageDir(world: World): Path {
+        return getSkinStorageDir(world).resolve(MMConstants.MOD_ID).resolve(MMConstants.PLAYER_SKIN_PATH)
+    }
 }
