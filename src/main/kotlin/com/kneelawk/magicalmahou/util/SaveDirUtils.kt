@@ -44,7 +44,7 @@ object SaveDirUtils {
             Files.createDirectories(skinDir)
         }
 
-        return skinDir.resolve(idStr)
+        return skinDir.resolve("$idStr.png")
     }
 
     fun getPlayerIdStr(player: PlayerEntity): String {
