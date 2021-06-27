@@ -5,30 +5,56 @@ import alexiil.mc.lib.net.impl.CoreMinecraftNetUtil
 import com.kneelawk.magicalmahou.MMConstants.str
 import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.image.InvalidImageException
+import com.kneelawk.magicalmahou.image.PlayerSkinModel
 import com.kneelawk.magicalmahou.image.SkinManagers
 import com.kneelawk.magicalmahou.image.SkinUtils
 import com.kneelawk.magicalmahou.net.MMNetIds
 import com.kneelawk.magicalmahou.net.setC2SReadWrite
 import com.kneelawk.magicalmahou.net.setC2SReceiver
 import com.kneelawk.magicalmahou.net.setS2CReadWrite
+import com.kneelawk.magicalmahou.proxy.MMProxy
 import com.kneelawk.magicalmahou.util.SaveDirUtils
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.tick.ClientTickingComponent
+import dev.onyxstudios.cca.api.v3.component.tick.CommonTickingComponent
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
 
 /**
+ * # MagicalMahou General Component
  * This component contains information about a magical player to be synced with all players.
  *
- * This information includes:
+ * ## This information includes:
  * * Is this player transformed?
  * * What is this player's transformed skin?
  * * Is this player's transformed skin using the "slim" model or the "default" model?
  * * What is this player's transformation particle color?
+ *
+ * ## Notes:
+ *
+ * ### When Adding New Data
+ * 1. Add a field for the data.
+ * 2. Add an initializer for the data. If the data's default state relies on the player, then it must be initialized
+ *    in either `tick()` or `clientTick()` depending on what it is.
+ * 3. Add NBT serialization and copying for the data. NBT serialization takes place in the `readFromNBT(...)` and
+ *    `writeToNBT(...)` methods. Copying takes place in the `copyFrom(...)` method.
+ * 4. Add synchronization for the data.
+ *     1. Is the data skin related? If so, consider how it should be synchronized with the `S2C_FULL_SYNC` packet,
+ *        the `S2C_FULL_WITHOUT_SKIN_SYNC` packet, and the `C2S_PLAYER_SKIN_SYNC` packet. (Should the default value
+ *        be retrieved from the client if the server doesn't have a valid version?)
+ *     2. Add synchronization to:
+ *         * `ID_S2C_FULL_SYNC` in the read-writer.
+ *         * `ID_S2C_FULL_WITHOUT_SKIN_SYNC` in the read-writer.
+ *         * `ID_C2S_PLAYER_SKIN_SYNC` in the read-writer.
+ *         * `ID_S2C_FULL_SYNC` in `syncTo(ActiveConnection, ByteArray)`.
+ * 5. Consider edit events.
+ *     1. Add a C2S packet for the event and a S2C packet for the event.
+ *     2. Consider packet throttling and a rejection S2C packet.
  */
 class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlayerComponent<MagicalMahouComponent>,
-    CopyableComponent<MagicalMahouComponent>, ClientTickingComponent {
+    CopyableComponent<MagicalMahouComponent>, ClientTickingComponent, CommonTickingComponent {
+
     companion object {
         private val NET_PARENT =
             MMNetIds.PLAYER_COMPONENT_NET_ID.subType(MagicalMahouComponent::class.java, str("component_general"))
@@ -54,9 +80,11 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             isTransformed = buf.readBoolean()
             playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
             playerSkinManager.update(playerId)
+            playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
         }, { buf, _ ->
             buf.writeBoolean(isTransformed)
             buf.writeByteArray(playerSkinManager.storePNGToBytes(playerId))
+            buf.writeByte(playerSkinModel.id)
         })
 
         /**
@@ -87,6 +115,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             try {
                 playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
                 playerSkinManager.update(playerId)
+                playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
                 needsC2SSkinSync = false
 
                 // Send skin to other players
@@ -100,7 +129,10 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                     )
                 }
             }
-        }, { buf, _ -> buf.writeByteArray(playerSkinManager.storePNGToBytes(playerId)) })
+        }, { buf, _ ->
+            buf.writeByteArray(playerSkinManager.storePNGToBytes(playerId))
+            buf.writeByte(playerSkinModel.id)
+        })
 
 
         /* Action Packets */
@@ -122,6 +154,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     private val playerSkinManager = SkinManagers.getPlayerSkinManger(provider.world)
     private val playerId = provider.uuid
     private var clientTickInitialized = false
+    private var commonTickInitialized = false
 
     /* Component State */
 
@@ -131,6 +164,9 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     // On the server, we always start by assuming that the player's skin is invalid. Then, if we load the player's skin
     // from a file, we can say that the skin is now valid.
     private var needsC2SSkinSync = !provider.world.isClient
+
+    var playerSkinModel: PlayerSkinModel = PlayerSkinModel.DEFAULT
+        private set
 
 
     /* Usable Methods */
@@ -153,19 +189,38 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
      * sync once the component has been fully initialized.
      */
     override fun clientTick() {
+        // Make sure tick() is called
+        super.clientTick()
+
         if (!clientTickInitialized) {
             clientTickInitialized = true
-
-            // Make sure we have a texture on the client-side so as to not lag when we need to access it
-            playerSkinManager.ensureExists(playerId)
 
             // Once everything is set up here, let us send a sync request to the server.
             ID_C2S_REQUEST_SYNC.send(CoreMinecraftNetUtil.getClientConnection(), this)
         }
     }
 
+    /**
+     * Common component tick. This is used for initializing things that can't be initialized in the constructor.
+     */
+    override fun tick() {
+        if (!commonTickInitialized) {
+            commonTickInitialized = true
+
+            // Make sure we have a texture on the client-side so as to not lag when we need to access it
+            playerSkinManager.ensureExists(playerId)
+
+            // We can't do this in the constructor because the network manager wouldn't have been initialized by then
+            playerSkinModel = MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
+        }
+    }
+
     override fun readFromNbt(tag: NbtCompound) {
-        isTransformed = tag.getBoolean("transformed")
+        isTransformed = if (tag.contains("transformed")) {
+            tag.getBoolean("transformed")
+        } else {
+            false
+        }
 
         val idStr = if (tag.contains("skinIdStr")) {
             tag.getString("skinIdStr")
@@ -175,6 +230,19 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
         needsC2SSkinSync = !SkinUtils.loadPlayerSkin(idStr, playerId, provider.world)
         playerSkinManager.update(playerId)
+
+        playerSkinModel = if (tag.contains("playerSkinModel")) {
+            val playerSkinModelStr = tag.getString("playerSkinModel")
+            val model = PlayerSkinModel.byModelStr(playerSkinModelStr)
+            if (model == null) {
+                MMLog.warn("Loaded invalid player skin model from NBT: $playerSkinModelStr")
+                MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
+            } else {
+                model
+            }
+        } else {
+            MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
+        }
     }
 
     override fun writeToNbt(tag: NbtCompound) {
@@ -187,11 +255,14 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         if (!needsC2SSkinSync) {
             SkinUtils.storePlayerSkin(idStr, playerId, provider.world)
         }
+
+        tag.putString("playerSkinModel", playerSkinModel.modelStr)
     }
 
     override fun copyFrom(other: MagicalMahouComponent) {
         isTransformed = other.isTransformed
         needsC2SSkinSync = other.needsC2SSkinSync
+        playerSkinModel = other.playerSkinModel
     }
 
 
@@ -213,6 +284,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             ctx.assertServerSide()
             buf.writeBoolean(isTransformed)
             buf.writeByteArray(playerSkinBytes)
+            buf.writeByte(playerSkinModel.id)
         }
     }
 

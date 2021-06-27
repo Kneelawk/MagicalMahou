@@ -7,9 +7,13 @@ import com.kneelawk.magicalmahou.client.render.player.CatEarsFeatureRenderer
 import com.kneelawk.magicalmahou.image.SkinManagerHolder
 import com.kneelawk.magicalmahou.image.SkinManagers
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
+import com.kneelawk.magicalmahou.proxy.ClientProxy
+import com.kneelawk.magicalmahou.proxy.MMProxy
 import com.kneelawk.magicalmahou.server.image.ServerSkinManager
 
 fun init() {
+    MMProxy.init(ClientProxy)
+
     PlayerEntityRendererEvents.ADD_FEATURES.register { renderer, _, _, consumer ->
         MMLog.info("Adding cat ears...")
         consumer.accept(CatEarsFeatureRenderer(renderer))
