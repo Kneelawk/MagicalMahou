@@ -138,6 +138,9 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
         /* Action Packets */
 
+        /**
+         * Sent by the client when the client wants the player to transform.
+         */
         private val ID_C2S_REQUEST_TRANSFORM = NET_PARENT.idData("C2S_REQUEST_TRANSFORM").setC2SReceiver { buf, _ ->
             MMLog.debug("Received C2S_REQUEST_TRANSFORM packet")
             // TODO: packet throttling
@@ -146,6 +149,27 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             // Send the transform and sync to all clients
             syncToEveryone(false)
         }
+
+        /**
+         * Sent by the client when the client wants to change the player's player skin model.
+         */
+        private val ID_C2S_SET_PLAYER_SKIN_MODEL =
+            NET_PARENT.idData("C2S_SET_PLAYER_SKIN_MODEL").setC2SReceiver { buf, _ ->
+                MMLog.debug("Received C2S_SET_PLAYER_SKIN_MODEL packet")
+                playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
+
+                for (conn in CoreMinecraftNetUtil.getPlayersWatching(provider.world, provider.blockPos)) {
+                    ID_S2C_SET_PLAYER_SKIN_MODEL.send(conn, this)
+                }
+            }
+
+        private val ID_S2C_SET_PLAYER_SKIN_MODEL = NET_PARENT.idData("S2C_SET_PLAYER_SKIN_MODEL").setS2CReadWrite(
+            { buf, _ ->
+                MMLog.debug("Received S2C_SET_PLAYER_SKIN_MODEL packet")
+                playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
+            },
+            { buf, _ -> buf.writeByte(playerSkinModel.id) }
+        )
     }
 
     override val key = MMComponents.GENERAL
@@ -186,6 +210,17 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         ID_C2S_REQUEST_TRANSFORM.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
             ctx.assertClientSide()
             buf.writeBoolean(transformed)
+        }
+    }
+
+    fun clientSendSkinUpdate() {
+        ID_C2S_PLAYER_SKIN_SYNC.send(CoreMinecraftNetUtil.getClientConnection(), this)
+    }
+
+    fun clientSetPlayerSkinModel(newPlayerSkinModel: PlayerSkinModel) {
+        ID_C2S_SET_PLAYER_SKIN_MODEL.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
+            ctx.assertClientSide()
+            buf.writeByte(newPlayerSkinModel.id)
         }
     }
 
