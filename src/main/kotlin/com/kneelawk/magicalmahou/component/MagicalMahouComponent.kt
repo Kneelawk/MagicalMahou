@@ -20,6 +20,7 @@ import dev.onyxstudios.cca.api.v3.component.tick.CommonTickingComponent
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
+import java.util.*
 
 /**
  * # MagicalMahou General Component
@@ -152,9 +153,20 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     /* Internal State */
 
     private val playerSkinManager = SkinManagers.getPlayerSkinManger(provider.world)
-    private val playerId = provider.uuid
-    private var clientTickInitialized = false
-    private var commonTickInitialized = false
+    private val playerId: UUID by lazy {
+        // Player ID is not valid on construction
+        println("Setting player id: ${provider.uuid}")
+        provider.uuid
+    }
+
+    init {
+        println("Construction player id: ${provider.uuid}")
+    }
+
+    /* Initialization Tracking */
+
+    private var syncRequestSent = false
+    private var dataInitialized = false
 
     /* Component State */
 
@@ -192,8 +204,8 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         // Make sure tick() is called
         super.clientTick()
 
-        if (!clientTickInitialized) {
-            clientTickInitialized = true
+        if (!syncRequestSent) {
+            syncRequestSent = true
 
             // Once everything is set up here, let us send a sync request to the server.
             ID_C2S_REQUEST_SYNC.send(CoreMinecraftNetUtil.getClientConnection(), this)
@@ -204,8 +216,8 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
      * Common component tick. This is used for initializing things that can't be initialized in the constructor.
      */
     override fun tick() {
-        if (!commonTickInitialized) {
-            commonTickInitialized = true
+        if (!dataInitialized) {
+            dataInitialized = true
 
             // Make sure we have a texture on the client-side so as to not lag when we need to access it
             playerSkinManager.ensureExists(playerId)
@@ -243,6 +255,10 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         } else {
             MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
         }
+        println("Loaded player skin model: $playerSkinModel")
+
+        // We've loaded our data from NBT so no need to initialize it in the common tick
+        dataInitialized = true
     }
 
     override fun writeToNbt(tag: NbtCompound) {
@@ -256,10 +272,16 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             SkinUtils.storePlayerSkin(idStr, playerId, provider.world)
         }
 
+        println("Writing player skin model: $playerSkinModel")
         tag.putString("playerSkinModel", playerSkinModel.modelStr)
     }
 
     override fun copyFrom(other: MagicalMahouComponent) {
+        // initialization tracking
+        syncRequestSent = other.syncRequestSent
+        dataInitialized = other.dataInitialized
+
+        // data
         isTransformed = other.isTransformed
         needsC2SSkinSync = other.needsC2SSkinSync
         playerSkinModel = other.playerSkinModel

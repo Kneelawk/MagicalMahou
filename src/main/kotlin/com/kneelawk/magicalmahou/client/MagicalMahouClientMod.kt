@@ -4,6 +4,7 @@ import com.kneelawk.magicalmahou.MMConstants
 import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.client.image.ClientSkinManager
 import com.kneelawk.magicalmahou.client.render.player.CatEarsFeatureRenderer
+import com.kneelawk.magicalmahou.component.MMComponents
 import com.kneelawk.magicalmahou.image.SkinManagerHolder
 import com.kneelawk.magicalmahou.image.SkinManagers
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
@@ -14,15 +15,36 @@ import com.kneelawk.magicalmahou.server.image.ServerSkinManager
 fun init() {
     MMProxy.init(ClientProxy)
 
+    // Setup image wrapper factory
+    SkinManagers.init(
+        SkinManagerHolder(ClientSkinManager(64, 64, MMConstants.PLAYER_SKIN_PATH, true), ServerSkinManager(64, 64))
+    )
+
     PlayerEntityRendererEvents.ADD_FEATURES.register { renderer, _, _, consumer ->
         MMLog.info("Adding cat ears...")
         consumer.accept(CatEarsFeatureRenderer(renderer))
     }
 
-    // Setup image wrapper factory
-    SkinManagers.init(
-        SkinManagerHolder(ClientSkinManager(64, 64, MMConstants.PLAYER_SKIN_PATH, true), ServerSkinManager(64, 64))
-    )
+    PlayerEntityRendererEvents.GET_SKIN_TEXTURE.register { player ->
+        val component = MMComponents.GENERAL[player]
+
+        if (component.isTransformed) {
+            val clientSkinManager = SkinManagers.getPlayerSkinManger(player.world) as ClientSkinManager
+            clientSkinManager.getIdentifier(player.uuid)
+        } else {
+            null
+        }
+    }
+
+    PlayerEntityRendererEvents.GET_SKIN_MODEL.register { player ->
+        val component = MMComponents.GENERAL[player]
+
+        if (component.isTransformed) {
+            component.playerSkinModel.modelStr
+        } else {
+            null
+        }
+    }
 
     MMKeys.register()
 }

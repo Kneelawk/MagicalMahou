@@ -26,4 +26,12 @@ public abstract class AbstractClientPlayerEntityMixin extends PlayerEntity {
             cir.setReturnValue(override);
         }
     }
+
+    @Inject(method = "getModel", at = @At("HEAD"), cancellable = true)
+    private void onGetSkinModel(CallbackInfoReturnable<String> cir) {
+        String override = PlayerEntityRendererEvents.getSkinModel((AbstractClientPlayerEntity) (Object) this);
+        if (override != null) {
+            cir.setReturnValue(override);
+        }
+    }
 }
