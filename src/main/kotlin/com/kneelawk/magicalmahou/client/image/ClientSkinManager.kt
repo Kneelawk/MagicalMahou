@@ -62,12 +62,9 @@ class ClientSkinManager(
     }
 
     override fun ensureExists(playerId: UUID): Boolean {
-        println("Ensure exists skin: $playerId")
         return if (skinMap.containsKey(playerId)) {
-            println("Already exists.")
             true
         } else {
-            println("Creating skin...")
             skinMap[playerId] = createSkin(playerId)
             false
         }
@@ -98,7 +95,6 @@ class ClientSkinManager(
     }
 
     override fun loadPNGFromBytes(data: ByteArray, playerId: UUID) {
-        println("Load PNG from bytes $playerId")
         val buf = MemoryUtil.memAlloc(data.size)
         val newImage: NativeImage
         try {
@@ -111,11 +107,9 @@ class ClientSkinManager(
         }
 
         putNativeImage(playerId, newImage, false)
-        println("PNG loaded from bytes. $playerId")
     }
 
     override fun loadPNGFromFile(path: Path, playerId: UUID, convertLegacy: Boolean) {
-        println("Load PNG from file $playerId")
         val newImage: NativeImage
         try {
             newImage = NativeImage.read(Files.newInputStream(path))
@@ -123,16 +117,13 @@ class ClientSkinManager(
             throw InvalidImageException.BadImage(e)
         }
         putNativeImage(playerId, newImage, convertLegacy)
-        println("PNG loaded from file. $playerId")
     }
 
     override fun storePNGToBytes(playerId: UUID): ByteArray {
-        println("Store PNG to bytes $playerId")
         return getOrCreate(playerId).texture.image!!.bytes
     }
 
     override fun storePNGToFile(path: Path, playerId: UUID) {
-        println("Store PNG to file $playerId")
         getOrCreate(playerId).texture.image!!.writeFile(path)
     }
 
@@ -146,7 +137,6 @@ class ClientSkinManager(
     }
 
     override fun update(playerId: UUID) {
-        println("Uploading texture $playerId")
         getOrCreate(playerId).texture.upload()
     }
 

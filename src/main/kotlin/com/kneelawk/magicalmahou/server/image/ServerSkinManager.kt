@@ -1,5 +1,6 @@
 package com.kneelawk.magicalmahou.server.image
 
+import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.image.InvalidImageException
 import com.kneelawk.magicalmahou.image.SkinManager
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
@@ -17,6 +18,7 @@ import javax.imageio.ImageIO
 
 class ServerSkinManager(override val imageWidth: Int, override val imageHeight: Int) : SkinManager {
     private val skinMap = hashMapOf<UUID, BufferedImage>()
+
     // Disconnect events take place on a different thread from tick events
     private val toRemove = ConcurrentLinkedQueue<UUID>()
 
@@ -26,7 +28,7 @@ class ServerSkinManager(override val imageWidth: Int, override val imageHeight: 
             skinMap.clear()
         }
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
-            println("Player ${handler.player.uuid} disconnected")
+            MMLog.debug("Player ${handler.player.uuid} disconnected")
             // Make sure to remove skins of disconnected players on the next tick
             toRemove.add(handler.player.uuid)
         }
@@ -34,7 +36,7 @@ class ServerSkinManager(override val imageWidth: Int, override val imageHeight: 
             // Remove all the skins of disconnected players
             while (toRemove.isNotEmpty()) {
                 val removeUUID = toRemove.remove()
-                println("Removing player skin $removeUUID")
+                MMLog.debug("Removing player skin $removeUUID")
                 skinMap.remove(removeUUID)
             }
         }

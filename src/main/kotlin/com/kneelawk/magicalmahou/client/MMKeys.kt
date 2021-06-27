@@ -30,13 +30,10 @@ object MMKeys {
 
         ClientTickEvents.END_CLIENT_TICK.register { client ->
             while (PRINT_SKIN.wasPressed()) {
-                println("Attempting to print skin...")
                 client.player?.let { player ->
-                    println("Printing skin...")
                     player.sendMessage(LiteralText("Printing skin..."), false)
                     SkinUtils.storePlayerSkin(SaveDirUtils.getPlayerIdStr(player), player.uuid, player.world)
                     player.sendMessage(LiteralText("Skin printed."), false)
-                    println("Skin Printed.")
                 }
             }
 

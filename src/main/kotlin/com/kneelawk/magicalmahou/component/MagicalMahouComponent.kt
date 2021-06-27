@@ -67,7 +67,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
          * Used by the client to ask the server to sync this component's data to this client.
          */
         private val ID_C2S_REQUEST_SYNC = NET_PARENT.idSignal("C2S_REQUEST_SYNC").setC2SReceiver { ctx ->
-            println("Received C2S_REQUEST_SYNC packet")
+            MMLog.debug("Received C2S_REQUEST_SYNC packet")
             syncTo(ctx.connection)
         }
 
@@ -77,7 +77,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
          * transforms, hopefully getting rid of the really bad desync.
          */
         private val ID_S2C_FULL_SYNC = NET_PARENT.idData("S2C_FULL_SYNC").setS2CReadWrite({ buf, _ ->
-            println("Received S2C_FULL_SYNC packet")
+            MMLog.debug("Received S2C_FULL_SYNC packet")
             isTransformed = buf.readBoolean()
             playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
             playerSkinManager.update(playerId)
@@ -95,7 +95,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
          */
         private val ID_S2C_FULL_WITHOUT_SKIN_SYNC =
             NET_PARENT.idData("S2C_FULL_WITHOUT_SKIN_SYNC").setS2CReadWrite({ buf, ctx ->
-                println("Received S2C_FULL_WITHOUT_SKIN_SYNC packet")
+                MMLog.debug("Received S2C_FULL_WITHOUT_SKIN_SYNC packet")
                 isTransformed = buf.readBoolean()
 
                 // this is only run on the client
@@ -112,7 +112,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
          * player updated their transformed skin.
          */
         private val ID_C2S_PLAYER_SKIN_SYNC = NET_PARENT.idData("C2S_PLAYER_SKIN_SYNC").setC2SReadWrite({ buf, _ ->
-            println("Received C2S_PLAYER_SKIN_SYNC packet")
+            MMLog.debug("Received C2S_PLAYER_SKIN_SYNC packet")
             try {
                 playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
                 playerSkinManager.update(playerId)
@@ -139,7 +139,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         /* Action Packets */
 
         private val ID_C2S_REQUEST_TRANSFORM = NET_PARENT.idData("C2S_REQUEST_TRANSFORM").setC2SReceiver { buf, _ ->
-            println("Received C2S_REQUEST_TRANSFORM packet")
+            MMLog.debug("Received C2S_REQUEST_TRANSFORM packet")
             // TODO: packet throttling
             isTransformed = buf.readBoolean()
 
@@ -155,12 +155,8 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     private val playerSkinManager = SkinManagers.getPlayerSkinManger(provider.world)
     private val playerId: UUID by lazy {
         // Player ID is not valid on construction
-        println("Setting player id: ${provider.uuid}")
+        MMLog.debug("Setting player ${provider.gameProfile.name} id: ${provider.uuid}")
         provider.uuid
-    }
-
-    init {
-        println("Construction player id: ${provider.uuid}")
     }
 
     /* Initialization Tracking */
@@ -255,7 +251,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         } else {
             MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
         }
-        println("Loaded player skin model: $playerSkinModel")
+        MMLog.debug("Loaded player skin model: $playerSkinModel")
 
         // We've loaded our data from NBT so no need to initialize it in the common tick
         dataInitialized = true
@@ -272,7 +268,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             SkinUtils.storePlayerSkin(idStr, playerId, provider.world)
         }
 
-        println("Writing player skin model: $playerSkinModel")
+        MMLog.debug("Writing player skin model: $playerSkinModel")
         tag.putString("playerSkinModel", playerSkinModel.modelStr)
     }
 

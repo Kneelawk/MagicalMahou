@@ -16,7 +16,7 @@ object SkinUtils {
      * @param world the world that the player is in (used to tell things like logical side and save dir).
      */
     fun storePlayerSkin(idStr: String, uuid: UUID, world: World) {
-        println("Storing player skin...")
+        MMLog.debug("Storing player skin...")
         val skinPath = SaveDirUtils.getPlayerSkinStorageFile(world, idStr, true)
         SkinManagers.getPlayerSkinManger(world).storePNGToFile(skinPath, uuid)
     }
@@ -32,7 +32,7 @@ object SkinUtils {
      */
     @Throws(InvalidImageException::class)
     fun loadPlayerSkin(idStr: String, uuid: UUID, world: World): Boolean {
-        println("Loading player skin...")
+        MMLog.debug("Loading player skin...")
         val skinPath = SaveDirUtils.getPlayerSkinStorageFile(world, idStr, false)
 
         if (!Files.exists(skinPath)) {
