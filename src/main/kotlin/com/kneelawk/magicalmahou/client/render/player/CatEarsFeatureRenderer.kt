@@ -2,6 +2,7 @@ package com.kneelawk.magicalmahou.client.render.player
 
 import com.kneelawk.magicalmahou.MMConstants.id
 import com.kneelawk.magicalmahou.client.render.ObjModelPart
+import com.kneelawk.magicalmahou.component.MMComponents
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.model.ModelPart
@@ -54,11 +55,16 @@ class CatEarsFeatureRenderer(
         entity: AbstractClientPlayerEntity, limbAngle: Float, limbDistance: Float, tickDelta: Float,
         animationProgress: Float, headYaw: Float, headPitch: Float
     ) {
-        // This does all the rotation and positioning for me!
-        contextModel.setAttributes(entityModel)
+        // Only render the cat ears if transformed (debug I guess)
+        val component = MMComponents.GENERAL[entity]
 
-        val consumer = vertexConsumers.getBuffer(RenderLayer.getCutout())
-        val overlay = LivingEntityRenderer.getOverlay(entity, 0.0f)
-        entityModel.render(matrices, consumer, light, overlay, 1f, 1f, 1f, 1f)
+        if (component.isTransformed) {
+            // This does all the rotation and positioning for me!
+            contextModel.setAttributes(entityModel)
+
+            val consumer = vertexConsumers.getBuffer(RenderLayer.getCutout())
+            val overlay = LivingEntityRenderer.getOverlay(entity, 0.0f)
+            entityModel.render(matrices, consumer, light, overlay, 1f, 1f, 1f, 1f)
+        }
     }
 }

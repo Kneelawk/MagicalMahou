@@ -23,6 +23,14 @@
     ],
     "server": [
       "com.kneelawk.magicalmahou.server.MagicalMahouServerModKt::init"
+    ],
+    "cardinal-components-entity": [
+      "com.kneelawk.magicalmahou.component.MagicalMahouCardinalEntrypointKt::registerEntityComponentFactories"
+    ]
+  },
+  "custom": {
+    "cardinal-components": [
+      "magical-mahou:general"
     ]
   },
   "mixins": [

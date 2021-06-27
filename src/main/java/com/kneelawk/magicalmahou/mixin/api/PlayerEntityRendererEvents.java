@@ -13,7 +13,7 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class PlayerEntityRendererEvents {
-    private static final ThreadLocal<Boolean> ENABLE_SKIN_TEXTURE_EVENT = ThreadLocal.withInitial(() -> true);
+    private static final ThreadLocal<Boolean> ENABLE_SKIN_EVENTS = ThreadLocal.withInitial(() -> true);
 
     public static final Event<AddFeatures> ADD_FEATURES =
             EventFactory.createArrayBacked(AddFeatures.class, (renderer, ctx, slim, consumer) -> {
@@ -23,13 +23,13 @@ public class PlayerEntityRendererEvents {
                 }
             });
 
-    public static void setSkinTextureEventEnabled(boolean enabled) {
-        ENABLE_SKIN_TEXTURE_EVENT.set(enabled);
+    public static void setSkinEventsEnabled(boolean enabled) {
+        ENABLE_SKIN_EVENTS.set(enabled);
     }
 
     @Nullable
     public static Identifier getSkinTexture(AbstractClientPlayerEntity player) {
-        if (ENABLE_SKIN_TEXTURE_EVENT.get()) {
+        if (ENABLE_SKIN_EVENTS.get()) {
             return GET_SKIN_TEXTURE.invoker().getSkinTexture(player);
         } else {
             return null;
@@ -37,11 +37,34 @@ public class PlayerEntityRendererEvents {
     }
 
     public static final Event<SkinTexture> GET_SKIN_TEXTURE =
-            EventFactory.createArrayBacked(SkinTexture.class, ctx -> null, callbacks -> player -> {
+            EventFactory.createArrayBacked(SkinTexture.class, player -> null, callbacks -> player -> {
                 Identifier override = null;
 
                 for (final SkinTexture callback : callbacks) {
                     Identifier newOverride = callback.getSkinTexture(player);
+                    if (override == null && newOverride != null) {
+                        override = newOverride;
+                    }
+                }
+
+                return override;
+            });
+
+    @Nullable
+    public static String getSkinModel(AbstractClientPlayerEntity player) {
+        if (ENABLE_SKIN_EVENTS.get()) {
+            return GET_SKIN_MODEL.invoker().getSkinModel(player);
+        } else {
+            return null;
+        }
+    }
+
+    public static final Event<SkinModel> GET_SKIN_MODEL =
+            EventFactory.createArrayBacked(SkinModel.class, player -> null, callbacks -> player -> {
+                String override = null;
+
+                for (final SkinModel callback : callbacks) {
+                    String newOverride = callback.getSkinModel(player);
                     if (override == null && newOverride != null) {
                         override = newOverride;
                     }
@@ -58,5 +81,10 @@ public class PlayerEntityRendererEvents {
     public interface SkinTexture {
         @Nullable
         Identifier getSkinTexture(AbstractClientPlayerEntity player);
+    }
+
+    public interface SkinModel {
+        @Nullable
+        String getSkinModel(AbstractClientPlayerEntity player);
     }
 }
