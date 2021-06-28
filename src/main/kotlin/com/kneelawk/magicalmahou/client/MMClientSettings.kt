@@ -9,7 +9,7 @@ import java.io.File
 import java.io.IOException
 
 object MMClientSettings {
-    private val SETTINGS_FILE = File(MMConstants.MOD_ID, "settings.dat")
+    private val SETTINGS_FILE = File(MMConstants.MOD_ID, "settings-client.dat")
 
     var previousPlayerSkinDir = File(System.getProperty("user.home"))
 
@@ -36,6 +36,10 @@ object MMClientSettings {
             val tag = NbtCompound()
 
             tag.putString("previousPlayerSkinDir", previousPlayerSkinDir.absolutePath)
+
+            if (!SETTINGS_FILE.parentFile.exists()) {
+                SETTINGS_FILE.parentFile.mkdirs()
+            }
 
             NbtIo.writeCompressed(tag, SETTINGS_FILE)
         } catch (e: IOException) {
