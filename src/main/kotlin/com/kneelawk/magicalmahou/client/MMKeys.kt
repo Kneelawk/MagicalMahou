@@ -66,28 +66,36 @@ object MMKeys {
                 client.player?.let { player ->
                     val component = MMComponents.GENERAL[player]
 
-                    if (component.isTransformed) {
-                        player.sendMessage(LiteralText("Un-Transforming..."), false)
-                    } else {
-                        player.sendMessage(LiteralText("Transforming..."), false)
-                    }
+                    if (component.isMagical) {
+                        val transformed = component.isActuallyTransformed()
 
-                    component.clientRequestTransform(!component.isTransformed)
+                        if (transformed) {
+                            player.sendMessage(LiteralText("Un-Transforming..."), false)
+                        } else {
+                            player.sendMessage(LiteralText("Transforming..."), false)
+                        }
+
+                        component.clientRequestTransform(!transformed)
+                    }
                 }
             }
 
             while (UPLOAD_PLAYER_SKIN.wasPressed()) {
                 client.player?.let { player ->
-                    uploadPlayerSkin(player)
+                    if (MMComponents.GENERAL[player].isActuallyTransformed()) {
+                        uploadPlayerSkin(player)
+                    }
                 }
             }
 
             while (CHANGE_PLAYER_MODEL.wasPressed()) {
                 client.player?.let { player ->
                     val component = MMComponents.GENERAL[player]
-                    val newPlayerModel = EnumUtils.rotateEnum(component.playerSkinModel, 1)
-                    player.sendMessage(LiteralText("Setting player model to: ${newPlayerModel.modelStr}"), false)
-                    component.clientSetPlayerSkinModel(newPlayerModel)
+                    if (component.isMagical) {
+                        val newPlayerModel = EnumUtils.rotateEnum(component.playerSkinModel, 1)
+                        player.sendMessage(LiteralText("Setting player model to: ${newPlayerModel.modelStr}"), false)
+                        component.clientSetPlayerSkinModel(newPlayerModel)
+                    }
                 }
             }
         }

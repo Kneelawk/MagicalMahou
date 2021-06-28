@@ -26,7 +26,7 @@ fun init() {
     PlayerEntityRendererEvents.GET_SKIN_TEXTURE.register { player ->
         val component = MMComponents.GENERAL[player]
 
-        if (component.isTransformed) {
+        if (component.isActuallyTransformed()) {
             val clientSkinManager = SkinManagers.getPlayerSkinManger(player.world) as ClientSkinManager
             clientSkinManager.getIdentifier(player.uuid)
         } else {
@@ -37,7 +37,7 @@ fun init() {
     PlayerEntityRendererEvents.GET_SKIN_MODEL.register { player ->
         val component = MMComponents.GENERAL[player]
 
-        if (component.isTransformed) {
+        if (component.isActuallyTransformed()) {
             component.playerSkinModel.modelStr
         } else {
             null

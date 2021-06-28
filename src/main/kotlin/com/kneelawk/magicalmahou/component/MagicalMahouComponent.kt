@@ -8,12 +8,10 @@ import com.kneelawk.magicalmahou.image.InvalidImageException
 import com.kneelawk.magicalmahou.image.PlayerSkinModel
 import com.kneelawk.magicalmahou.image.SkinManagers
 import com.kneelawk.magicalmahou.image.SkinUtils
-import com.kneelawk.magicalmahou.net.MMNetIds
-import com.kneelawk.magicalmahou.net.setC2SReadWrite
-import com.kneelawk.magicalmahou.net.setC2SReceiver
-import com.kneelawk.magicalmahou.net.setS2CReadWrite
+import com.kneelawk.magicalmahou.net.*
 import com.kneelawk.magicalmahou.proxy.MMProxy
 import com.kneelawk.magicalmahou.util.SaveDirUtils
+import com.kneelawk.magicalmahou.util.lazyVar
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.tick.ClientTickingComponent
 import dev.onyxstudios.cca.api.v3.component.tick.CommonTickingComponent
@@ -27,6 +25,7 @@ import java.util.*
  * This component contains information about a magical player to be synced with all players.
  *
  * ## This information includes:
+ * * Is this player even magical?
  * * Is this player transformed?
  * * What is this player's transformed skin?
  * * Is this player's transformed skin using the "slim" model or the "default" model?
@@ -78,6 +77,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
          */
         private val ID_S2C_FULL_SYNC = NET_PARENT.idData("S2C_FULL_SYNC").setS2CReadWrite({ buf, _ ->
             MMLog.debug("Received S2C_FULL_SYNC packet")
+            isMagical = true
             isTransformed = buf.readBoolean()
             playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
             playerSkinManager.update(playerId)
@@ -96,6 +96,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         private val ID_S2C_FULL_WITHOUT_SKIN_SYNC =
             NET_PARENT.idData("S2C_FULL_WITHOUT_SKIN_SYNC").setS2CReadWrite({ buf, ctx ->
                 MMLog.debug("Received S2C_FULL_WITHOUT_SKIN_SYNC packet")
+                isMagical = true
                 isTransformed = buf.readBoolean()
 
                 // this is only run on the client
@@ -108,27 +109,42 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             }, { buf, _ -> buf.writeBoolean(isTransformed) })
 
         /**
+         * Sent by the server to indicate that the player is not magical.
+         */
+        private val ID_S2C_NON_MAGICAL_SYNC = NET_PARENT.idSignal("S2C_NON_MAGICAL_SYNC").setS2CReceiver {
+            MMLog.debug("Received S2C_NON_MAGICAL_SYNC packet")
+            isMagical = false
+            isTransformed = false
+        }
+
+        /**
          * Used to sync a player's transformed skin to the server, either because the server requested it or because the
          * player updated their transformed skin.
          */
-        private val ID_C2S_PLAYER_SKIN_SYNC = NET_PARENT.idData("C2S_PLAYER_SKIN_SYNC").setC2SReadWrite({ buf, _ ->
+        private val ID_C2S_PLAYER_SKIN_SYNC = NET_PARENT.idData("C2S_PLAYER_SKIN_SYNC").setC2SReadWrite({ buf, ctx ->
             MMLog.debug("Received C2S_PLAYER_SKIN_SYNC packet")
-            try {
-                playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
-                playerSkinManager.update(playerId)
-                playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
-                needsC2SSkinSync = false
+            if (isMagical) {
+                try {
+                    playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
+                    playerSkinManager.update(playerId)
+                    playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
+                    needsC2SSkinSync = false
 
-                // Send skin to other players
-                syncToEveryone(true)
-            } catch (e: InvalidImageException) {
-                when (e) {
-                    is InvalidImageException.BadImage -> MMLog.warn("Error receiving C2S_PLAYER_SKIN_SYNC packet", e)
-                    is InvalidImageException.WrongDimensions -> MMLog.warn(
-                        "Received C2S_PLAYER_SKIN_SYNC packet with wrong dimensions. Should be (${e.requiredWidth}x${e.requiredHeight}) but were (${e.requiredWidth}x${e.providedHeight})",
-                        e
-                    )
+                    // Send skin to other players
+                    syncToEveryone(true)
+                } catch (e: InvalidImageException) {
+                    when (e) {
+                        is InvalidImageException.BadImage -> MMLog.warn(
+                            "Error receiving C2S_PLAYER_SKIN_SYNC packet", e
+                        )
+                        is InvalidImageException.WrongDimensions -> MMLog.warn(
+                            "Received C2S_PLAYER_SKIN_SYNC packet with wrong dimensions. Should be (${e.requiredWidth}x${e.requiredHeight}) but were (${e.requiredWidth}x${e.providedHeight})",
+                            e
+                        )
+                    }
                 }
+            } else {
+                ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
             }
         }, { buf, _ ->
             buf.writeByteArray(playerSkinManager.storePNGToBytes(playerId))
@@ -141,28 +157,40 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         /**
          * Sent by the client when the client wants the player to transform.
          */
-        private val ID_C2S_REQUEST_TRANSFORM = NET_PARENT.idData("C2S_REQUEST_TRANSFORM").setC2SReceiver { buf, _ ->
+        private val ID_C2S_REQUEST_TRANSFORM = NET_PARENT.idData("C2S_REQUEST_TRANSFORM").setC2SReceiver { buf, ctx ->
             MMLog.debug("Received C2S_REQUEST_TRANSFORM packet")
-            // TODO: packet throttling
-            isTransformed = buf.readBoolean()
+            if (isMagical) {
+                // TODO: packet throttling
+                isTransformed = buf.readBoolean()
 
-            // Send the transform and sync to all clients
-            syncToEveryone(false)
+                // Send the transform and sync to all clients
+                syncToEveryone(false)
+            } else {
+                ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
+            }
         }
 
         /**
          * Sent by the client when the client wants to change the player's player skin model.
          */
         private val ID_C2S_SET_PLAYER_SKIN_MODEL =
-            NET_PARENT.idData("C2S_SET_PLAYER_SKIN_MODEL").setC2SReceiver { buf, _ ->
+            NET_PARENT.idData("C2S_SET_PLAYER_SKIN_MODEL").setC2SReceiver { buf, ctx ->
                 MMLog.debug("Received C2S_SET_PLAYER_SKIN_MODEL packet")
-                playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
+                if (isMagical) {
+                    playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
 
-                for (conn in CoreMinecraftNetUtil.getPlayersWatching(provider.world, provider.blockPos)) {
-                    ID_S2C_SET_PLAYER_SKIN_MODEL.send(conn, this)
+                    for (conn in CoreMinecraftNetUtil.getPlayersWatching(provider.world, provider.blockPos)) {
+                        ID_S2C_SET_PLAYER_SKIN_MODEL.send(conn, this)
+                    }
+                } else {
+                    ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
                 }
             }
 
+        /**
+         * Sent by the server when the server has deemed that a player's transformed player skin model should be
+         * updated.
+         */
         private val ID_S2C_SET_PLAYER_SKIN_MODEL = NET_PARENT.idData("S2C_SET_PLAYER_SKIN_MODEL").setS2CReadWrite(
             { buf, _ ->
                 MMLog.debug("Received S2C_SET_PLAYER_SKIN_MODEL packet")
@@ -190,37 +218,58 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
     /* Component State */
 
-    var isTransformed = false
+    private var isTransformed = false
+    var isMagical = false
         private set
 
     // On the server, we always start by assuming that the player's skin is invalid. Then, if we load the player's skin
     // from a file, we can say that the skin is now valid.
     private var needsC2SSkinSync = !provider.world.isClient
 
-    var playerSkinModel: PlayerSkinModel = PlayerSkinModel.DEFAULT
+    var playerSkinModel by lazyVar {
+        // We can't do this in the constructor because the network manager wouldn't have been initialized by then and we
+        // can't do this in the `tick()` function because the player skin might not have been loaded by then.
+        MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
+    }
         private set
 
 
     /* Usable Methods */
 
+    fun isActuallyTransformed(): Boolean {
+        return isMagical && isTransformed
+    }
+
     /**
      * Used on the client-side to request a transformation.
      */
     fun clientRequestTransform(transformed: Boolean) {
-        ID_C2S_REQUEST_TRANSFORM.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
-            ctx.assertClientSide()
-            buf.writeBoolean(transformed)
+        if (isMagical) {
+            ID_C2S_REQUEST_TRANSFORM.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
+                ctx.assertClientSide()
+                buf.writeBoolean(transformed)
+            }
         }
     }
 
+    /**
+     * Used on the client-side to send an updated skin to the server.
+     */
     fun clientSendSkinUpdate() {
-        ID_C2S_PLAYER_SKIN_SYNC.send(CoreMinecraftNetUtil.getClientConnection(), this)
+        if (isMagical) {
+            ID_C2S_PLAYER_SKIN_SYNC.send(CoreMinecraftNetUtil.getClientConnection(), this)
+        }
     }
 
+    /**
+     * Used on the client-side to send an updated player model type.
+     */
     fun clientSetPlayerSkinModel(newPlayerSkinModel: PlayerSkinModel) {
-        ID_C2S_SET_PLAYER_SKIN_MODEL.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
-            ctx.assertClientSide()
-            buf.writeByte(newPlayerSkinModel.id)
+        if (isMagical) {
+            ID_C2S_SET_PLAYER_SKIN_MODEL.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
+                ctx.assertClientSide()
+                buf.writeByte(newPlayerSkinModel.id)
+            }
         }
     }
 
@@ -250,15 +299,26 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         if (!dataInitialized) {
             dataInitialized = true
 
-            // Make sure we have a texture on the client-side so as to not lag when we need to access it
-            playerSkinManager.ensureExists(playerId)
-
-            // We can't do this in the constructor because the network manager wouldn't have been initialized by then
-            playerSkinModel = MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
+            // initialize data here
         }
     }
 
     override fun readFromNbt(tag: NbtCompound) {
+        // We're loading our data from NBT so no need to initialize it in the common tick
+        dataInitialized = true
+
+        isMagical = if (tag.contains("magical")) {
+            tag.getBoolean("magical")
+        } else {
+            false
+        }
+
+        // If we're not magical, then we don't care about anything else. Don't do any initialization of the magical
+        // stuff.
+        if (!isMagical) {
+            return
+        }
+
         isTransformed = if (tag.contains("transformed")) {
             tag.getBoolean("transformed")
         } else {
@@ -287,12 +347,16 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
         }
         MMLog.debug("Loaded player skin model: $playerSkinModel")
-
-        // We've loaded our data from NBT so no need to initialize it in the common tick
-        dataInitialized = true
     }
 
     override fun writeToNbt(tag: NbtCompound) {
+        tag.putBoolean("magical", isMagical)
+
+        // Again, if we're not magical, we don't care about any of the other data.
+        if (!isMagical) {
+            return
+        }
+
         tag.putBoolean("transformed", isTransformed)
 
         val idStr = SaveDirUtils.getPlayerIdStr(provider)
@@ -322,17 +386,37 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     /* Synchronization Methods */
 
     /**
-     * Used to sync everything so an individual client. If this
+     * Used to sync everything so an individual client. If this player is not magical, then it sends the non-magical
+     * packet. If this player is missing a skin on the server side, then it sends the missing-skin packet. If this
+     * player has everything, it sends the full-sync packet.
      */
     private fun syncTo(conn: ActiveConnection) {
-        if (needsC2SSkinSync) {
-            ID_S2C_FULL_WITHOUT_SKIN_SYNC.send(conn, this)
+        if (isMagical) {
+            if (needsC2SSkinSync) {
+                ID_S2C_FULL_WITHOUT_SKIN_SYNC.send(conn, this)
+            } else {
+                ID_S2C_FULL_SYNC.send(conn, this)
+            }
         } else {
-            ID_S2C_FULL_SYNC.send(conn, this)
+            ID_S2C_NON_MAGICAL_SYNC.send(conn, this)
         }
     }
 
-    private fun syncTo(conn: ActiveConnection, playerSkinBytes: ByteArray) {
+    /**
+     * Used to sync player status when no skin is available.
+     */
+    private fun syncWithoutSkinTo(conn: ActiveConnection) {
+        if (isMagical) {
+            ID_S2C_FULL_WITHOUT_SKIN_SYNC.send(conn, this)
+        } else {
+            ID_S2C_NON_MAGICAL_SYNC.send(conn, this)
+        }
+    }
+
+    /**
+     * Used to sync a full skin to an individual client.
+     */
+    private fun syncWithSkinTo(conn: ActiveConnection, playerSkinBytes: ByteArray) {
         ID_S2C_FULL_SYNC.send(conn, this) { _, buf, ctx ->
             ctx.assertServerSide()
             buf.writeBoolean(isTransformed)
@@ -341,16 +425,34 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         }
     }
 
+    /**
+     * Syncs this server-side component to all client-side components in range, optionally excluding the client of the
+     * player to which this component belongs.
+     */
     private fun syncToEveryone(exceptSelf: Boolean) {
-        val playerSkinBytes = playerSkinManager.storePNGToBytes(playerId)
+        val playersWatching = CoreMinecraftNetUtil.getPlayersWatching(provider.world, provider.blockPos)
 
-        for (conn in CoreMinecraftNetUtil.getPlayersWatching(provider.world, provider.blockPos)) {
-            if (conn.player == provider) {
-                if (!exceptSelf) {
-                    syncTo(conn, playerSkinBytes)
+        if (needsC2SSkinSync) {
+            for (conn in playersWatching) {
+                if (conn.player == provider) {
+                    if (!exceptSelf) {
+                        syncWithoutSkinTo(conn)
+                    }
+                } else {
+                    syncWithoutSkinTo(conn)
                 }
-            } else {
-                syncTo(conn, playerSkinBytes)
+            }
+        } else {
+            val playerSkinBytes = playerSkinManager.storePNGToBytes(playerId)
+
+            for (conn in playersWatching) {
+                if (conn.player == provider) {
+                    if (!exceptSelf) {
+                        syncWithSkinTo(conn, playerSkinBytes)
+                    }
+                } else {
+                    syncWithSkinTo(conn, playerSkinBytes)
+                }
             }
         }
     }

@@ -58,7 +58,7 @@ class CatEarsFeatureRenderer(
         // Only render the cat ears if transformed (debug I guess)
         val component = MMComponents.GENERAL[entity]
 
-        if (component.isTransformed) {
+        if (component.isActuallyTransformed()) {
             // This does all the rotation and positioning for me!
             contextModel.setAttributes(entityModel)
 

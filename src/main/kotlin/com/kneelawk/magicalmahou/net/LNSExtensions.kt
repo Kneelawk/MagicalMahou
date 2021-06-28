@@ -46,3 +46,10 @@ fun <T> NetIdSignalK<T>.setC2SReceiver(receiver: T.(IMsgReadCtx) -> Unit): NetId
         obj.receiver(ctx)
     }
 }
+
+fun <T> NetIdSignalK<T>.setS2CReceiver(receiver: T.(IMsgReadCtx) -> Unit): NetIdSignalK<T> {
+    return setReceiver { obj, ctx ->
+        ctx.assertClientSide()
+        obj.receiver(ctx)
+    }
+}
