@@ -313,11 +313,8 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             false
         }
 
-        // If we're not magical, then we don't care about anything else. Don't do any initialization of the magical
-        // stuff.
-        if (!isMagical) {
-            return
-        }
+        // Even though we are not currently magical, we may have once been magical. Save and load that stuff on the
+        // server just as normal.
 
         isTransformed = if (tag.contains("transformed")) {
             tag.getBoolean("transformed")
@@ -347,15 +344,17 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
         }
         MMLog.debug("Loaded player skin model: $playerSkinModel")
+
+        // If we've never been magical before and thus never had a valid skin before, we should know that.
+        if (tag.contains("needsC2SSkinSync")) {
+            needsC2SSkinSync = needsC2SSkinSync && tag.getBoolean("needsC2SSkinSync")
+        }
     }
 
     override fun writeToNbt(tag: NbtCompound) {
         tag.putBoolean("magical", isMagical)
 
-        // Again, if we're not magical, we don't care about any of the other data.
-        if (!isMagical) {
-            return
-        }
+        // Again, even if we're not magical, we may have been once.
 
         tag.putBoolean("transformed", isTransformed)
 
@@ -369,6 +368,9 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
         MMLog.debug("Writing player skin model: $playerSkinModel")
         tag.putString("playerSkinModel", playerSkinModel.modelStr)
+
+        // If we've never been magical and thus never had a valid skin, we should keep track of that.
+        tag.putBoolean("needsC2SSkinSync", needsC2SSkinSync)
     }
 
     override fun copyFrom(other: MagicalMahouComponent) {
