@@ -107,6 +107,13 @@ dependencies {
         }
     }
 
+    modRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+        exclude group: "net.fabricmc.fabric-api"
+    }
+    modRuntime("dev.architectury:architectury-fabric:${project.architectury_version}") {
+        exclude group: "net.fabricmc.fabric-api"
+    }
+
     compileOnly "org.apiguardian:apiguardian-api:${project.apiguardian_version}"
     compileOnly "com.google.code.findbugs:jsr305:${project.jsr305_version}"
     compileOnly "com.demonwav.mcdev:annotations:${project.mcdev_annotations_version}"

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    " C ",
+    "OOO"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:quartz_blocks"
+    },
+    "O": {
+      "tag": "c:obsidian_blocks"
+    }
+  },
+  "result": {
+    "item": "magical-mahou:crystal_ball",
+    "count": 1
+  }
+}
