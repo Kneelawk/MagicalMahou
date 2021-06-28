@@ -82,7 +82,7 @@ object MMKeys {
 
             while (UPLOAD_PLAYER_SKIN.wasPressed()) {
                 client.player?.let { player ->
-                    if (MMComponents.GENERAL[player].isActuallyTransformed()) {
+                    if (MMComponents.GENERAL[player].isMagical) {
                         uploadPlayerSkin(player)
                     }
                 }
