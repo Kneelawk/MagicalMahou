@@ -1,6 +1,7 @@
 package com.kneelawk.magicalmahou.client
 
 import com.kneelawk.magicalmahou.MMLog
+import com.kneelawk.magicalmahou.block.MMBlocksClient
 import com.kneelawk.magicalmahou.client.image.ClientSkinManager
 import com.kneelawk.magicalmahou.client.image.ClientSkinManagers
 import com.kneelawk.magicalmahou.client.render.player.CatEarsFeatureRenderer
@@ -42,6 +43,8 @@ fun init() {
             null
         }
     }
+
+    MMBlocksClient.init()
 
     MMKeys.register()
 }

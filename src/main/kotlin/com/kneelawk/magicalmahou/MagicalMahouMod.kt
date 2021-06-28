@@ -1,5 +1,7 @@
 package com.kneelawk.magicalmahou
 
-fun init() {
+import com.kneelawk.magicalmahou.block.MMBlocks
 
+fun init() {
+    MMBlocks.init()
 }
