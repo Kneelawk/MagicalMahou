@@ -20,4 +20,8 @@ object MMConstants {
     fun tt(prefix: String, suffix: String, vararg args: Any?): Text {
         return TranslatableText("$prefix.$MOD_ID.$suffix", *args)
     }
+
+    fun gui(suffix: String, vararg args: Any?): Text {
+        return tt("gui", suffix, *args)
+    }
 }

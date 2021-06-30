@@ -18,6 +18,7 @@ import dev.onyxstudios.cca.api.v3.component.tick.CommonTickingComponent
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
+import net.minecraft.particle.ParticleTypes
 import java.util.*
 
 /**
@@ -77,8 +78,15 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
          */
         private val ID_S2C_FULL_SYNC = NET_PARENT.idData("S2C_FULL_SYNC").setS2CReadWrite({ buf, _ ->
             MMLog.debug("Received S2C_FULL_SYNC packet")
+            val previousTransformed = isActuallyTransformed()
+
             isMagical = true
             isTransformed = buf.readBoolean()
+
+            if (isActuallyTransformed() && !previousTransformed) {
+                displayTransform()
+            }
+
             playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
             playerSkinManager.update(playerId)
             playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
@@ -271,6 +279,29 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                 buf.writeByte(newPlayerSkinModel.id)
             }
         }
+    }
+
+    /**
+     * Used on the server-side to make a player magical.
+     */
+    fun serverMakeMagical() {
+        isMagical = true
+        isTransformed = true
+        syncToEveryone(false)
+    }
+
+
+    /* Internal Methods */
+
+    /**
+     * Causes the client to display the particle effects associated with a transformation.
+     */
+    fun displayTransform() {
+//        val x = provider.x
+//        val y = provider.y + provider.height / 2.0
+//        val z = provider.z
+
+        // TODO: Add transformation particles
     }
 
 

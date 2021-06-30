@@ -17,7 +17,7 @@ import java.util.*
 
 class CrystalBallBlock(settings: Settings) : Block(settings) {
     companion object {
-        private val TITLE = tt("container", "crystal_block")
+        private val TITLE = tt("container", "crystal_ball")
     }
 
     override fun onUse(
