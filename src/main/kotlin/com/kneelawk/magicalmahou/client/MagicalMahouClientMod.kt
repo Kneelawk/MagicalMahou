@@ -5,6 +5,7 @@ import com.kneelawk.magicalmahou.block.MMBlocksClient
 import com.kneelawk.magicalmahou.client.image.ClientSkinManager
 import com.kneelawk.magicalmahou.client.image.ClientSkinManagers
 import com.kneelawk.magicalmahou.client.render.player.CatEarsFeatureRenderer
+import com.kneelawk.magicalmahou.client.screen.MMScreens
 import com.kneelawk.magicalmahou.component.MMComponents
 import com.kneelawk.magicalmahou.image.SkinManagers
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
@@ -45,6 +46,6 @@ fun init() {
     }
 
     MMBlocksClient.init()
-
     MMKeys.register()
+    MMScreens.init()
 }

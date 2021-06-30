@@ -4,7 +4,6 @@ import com.kneelawk.magicalmahou.MMConstants.id
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings
-import net.minecraft.block.Block
 import net.minecraft.block.MapColor
 import net.minecraft.block.Material
 import net.minecraft.item.BlockItem
@@ -16,7 +15,7 @@ object MMBlocks {
     lateinit var ITEM_GROUP: ItemGroup
         private set
 
-    lateinit var CRYSTAL_BALL: Block
+    lateinit var CRYSTAL_BALL: CrystalBallBlock
         private set
 
     fun init() {
@@ -24,9 +23,10 @@ object MMBlocks {
 
         val itemSettings = FabricItemSettings().group(ITEM_GROUP)
         val crystalBallSettings =
-            FabricBlockSettings.of(Material.GLASS).mapColor(MapColor.PURPLE).requiresTool().strength(50.0F, 1200.0F).nonOpaque()
+            FabricBlockSettings.of(Material.GLASS).mapColor(MapColor.PURPLE).requiresTool().strength(50.0F, 1200.0F)
+                .nonOpaque()
 
-        CRYSTAL_BALL = Block(crystalBallSettings)
+        CRYSTAL_BALL = CrystalBallBlock(crystalBallSettings)
 
         Registry.register(Registry.BLOCK, id("crystal_ball"), CRYSTAL_BALL)
         Registry.register(Registry.ITEM, id("crystal_ball"), BlockItem(CRYSTAL_BALL, itemSettings))
