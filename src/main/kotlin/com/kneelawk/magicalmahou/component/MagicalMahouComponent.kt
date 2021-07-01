@@ -223,6 +223,10 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         provider.uuid
     }
 
+    /* Listeners */
+
+    private val isMagicalListeners = mutableListOf<(Boolean) -> Unit>()
+
     /* Initialization Tracking */
 
     private var syncRequestSent = false
@@ -232,7 +236,17 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
     private var isTransformed = false
     var isMagical = false
-        private set
+        private set(value) {
+            val previous = field
+            field = value
+
+            // notify listeners
+            if (previous != value) {
+                for (listener in isMagicalListeners) {
+                    listener(value)
+                }
+            }
+        }
 
     // On the server, we always start by assuming that the player's skin is invalid. Then, if we load the player's skin
     // from a file, we can say that the skin is now valid.
@@ -292,6 +306,16 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         isMagical = true
         isTransformed = true
         syncToEveryone(exceptSelf = false, displayTransform = true)
+    }
+
+    /* Usable Methods : Event Listener Methods */
+
+    fun addIsMagicalListener(listener: (Boolean) -> Unit) {
+        isMagicalListeners.add(listener)
+    }
+
+    fun removeIsMagicalListener(listener: (Boolean) -> Unit) {
+        println("Success: " + isMagicalListeners.remove(listener))
     }
 
 
@@ -412,6 +436,9 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         // initialization tracking
         syncRequestSent = other.syncRequestSent
         dataInitialized = other.dataInitialized
+
+        // TODO: investigate whether to copy listeners (in theory, the player shouldn't be dying or anything while they
+        //  have a gui open and still end up needing notifications)
 
         // data
         isTransformed = other.isTransformed

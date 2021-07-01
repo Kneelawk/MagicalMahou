@@ -11,6 +11,7 @@ import io.github.cottonmc.cotton.gui.SyncedGuiDescription
 import io.github.cottonmc.cotton.gui.widget.WCardPanel
 import io.github.cottonmc.cotton.gui.widget.WGridPanel
 import io.github.cottonmc.cotton.gui.widget.data.Insets
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 
 class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
@@ -27,22 +28,48 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
 
     private val component = MMComponents.GENERAL[inventory.player]
 
+    private val root = WCardPanel()
+
+    private val listener: (Boolean) -> Unit = {
+        if (it) {
+            root.selectedIndex = 1
+        } else {
+            root.selectedIndex = 0
+        }
+    }
+
     init {
-        val root = WCardPanel()
         rootPanel = root
 
         val acceptPanel = WGridPanel()
         root.add(0, acceptPanel)
         acceptPanel.insets = Insets.ROOT_PANEL
-        acceptPanel.setSize(9 * 18 + 14, 9 * 18 + 14)
 
-        // I'm so tired to 20px tall buttons so I'm using one that isn't 20px tall
+        // I'm too tired of 20px tall buttons so I'm using one that isn't 20px tall
         val acceptButton = WScalableButton(gui("crystal_ball.accept"))
-        acceptPanel.add(acceptButton, 2, 3, 5, 1)
+        acceptPanel.add(acceptButton, 0, 3, 9, 1)
         acceptButton.onClick = {
             ID_ACCEPT.send(CoreMinecraftNetUtil.getClientConnection(), this)
         }
 
+        val mainPanel = WGridPanel()
+        root.add(1, mainPanel)
+
+        // Select the current panel depending on whether the player is magical or not
+        if (component.isMagical) {
+            root.selectedIndex = 1
+        } else {
+            root.selectedIndex = 0
+        }
+
+        // add the listener so we are notified of magical changes
+        component.addIsMagicalListener(listener)
+
         root.validate(this)
+    }
+
+    override fun close(playerEntity: PlayerEntity?) {
+        super.close(playerEntity)
+        component.removeIsMagicalListener(listener)
     }
 }
