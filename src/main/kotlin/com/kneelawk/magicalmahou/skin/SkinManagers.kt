@@ -1,4 +1,4 @@
-package com.kneelawk.magicalmahou.image
+package com.kneelawk.magicalmahou.skin
 
 import net.minecraft.world.World
 

@@ -1,4 +1,4 @@
-package com.kneelawk.magicalmahou.image
+package com.kneelawk.magicalmahou.skin
 
 enum class PlayerSkinModel(val modelStr: String) {
     DEFAULT("default"),

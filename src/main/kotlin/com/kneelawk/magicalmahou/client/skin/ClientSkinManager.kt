@@ -1,8 +1,8 @@
-package com.kneelawk.magicalmahou.client.image
+package com.kneelawk.magicalmahou.client.skin
 
 import com.kneelawk.magicalmahou.MMConstants.id
-import com.kneelawk.magicalmahou.image.InvalidImageException
-import com.kneelawk.magicalmahou.image.SkinManager
+import com.kneelawk.magicalmahou.skin.InvalidSkinException
+import com.kneelawk.magicalmahou.skin.SkinManager
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
@@ -74,11 +74,11 @@ class ClientSkinManager(
         var newImage = nativeImage
 
         if (nativeImage.width != imageWidth) {
-            throw InvalidImageException.WrongDimensions(imageWidth, imageHeight, nativeImage.width, nativeImage.height)
+            throw InvalidSkinException.WrongDimensions(imageWidth, imageHeight, nativeImage.width, nativeImage.height)
         } else if (convertLegacy && isSkinSized && nativeImage.height == 32) {
             newImage = ClientSkinUtils.convertLegacyPlayerSkin(nativeImage)
         } else if (nativeImage.height != imageHeight) {
-            throw InvalidImageException.WrongDimensions(imageWidth, imageHeight, nativeImage.width, nativeImage.height)
+            throw InvalidSkinException.WrongDimensions(imageWidth, imageHeight, nativeImage.width, nativeImage.height)
         }
 
         if (skinMap.containsKey(playerId)) {
@@ -101,7 +101,7 @@ class ClientSkinManager(
             buf.put(0, data)
             newImage = NativeImage.read(NativeImage.Format.ABGR, buf)
         } catch (e: IOException) {
-            throw InvalidImageException.BadImage(e)
+            throw InvalidSkinException.BadImage(e)
         } finally {
             MemoryUtil.memFree(buf)
         }
@@ -114,7 +114,7 @@ class ClientSkinManager(
         try {
             newImage = NativeImage.read(Files.newInputStream(path))
         } catch (e: IOException) {
-            throw InvalidImageException.BadImage(e)
+            throw InvalidSkinException.BadImage(e)
         }
         putNativeImage(playerId, newImage, convertLegacy)
     }

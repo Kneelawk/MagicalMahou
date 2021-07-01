@@ -1,4 +1,4 @@
-package com.kneelawk.magicalmahou.server.image
+package com.kneelawk.magicalmahou.server.skin
 
 import java.awt.Graphics2D
 import java.awt.geom.AffineTransform

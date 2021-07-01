@@ -1,9 +1,9 @@
-package com.kneelawk.magicalmahou.client.image
+package com.kneelawk.magicalmahou.client.skin
 
 import com.kneelawk.magicalmahou.MMConstants
-import com.kneelawk.magicalmahou.image.SkinManagerHolder
-import com.kneelawk.magicalmahou.image.SkinManagers
-import com.kneelawk.magicalmahou.server.image.ServerSkinManager
+import com.kneelawk.magicalmahou.skin.SkinManagerHolder
+import com.kneelawk.magicalmahou.skin.SkinManagers
+import com.kneelawk.magicalmahou.server.skin.ServerSkinManager
 
 object ClientSkinManagers {
     lateinit var CLIENT_PLAYER_SKIN: ClientSkinManager

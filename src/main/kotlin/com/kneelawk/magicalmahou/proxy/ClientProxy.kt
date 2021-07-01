@@ -2,7 +2,7 @@ package com.kneelawk.magicalmahou.proxy
 
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
 import com.kneelawk.magicalmahou.MMLog
-import com.kneelawk.magicalmahou.image.PlayerSkinModel
+import com.kneelawk.magicalmahou.skin.PlayerSkinModel
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.entity.player.PlayerEntity
 

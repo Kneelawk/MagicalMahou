@@ -1,6 +1,6 @@
 package com.kneelawk.magicalmahou.proxy
 
-import com.kneelawk.magicalmahou.image.PlayerSkinModel
+import com.kneelawk.magicalmahou.skin.PlayerSkinModel
 import net.minecraft.entity.player.PlayerEntity
 
 object ServerProxy : CommonProxy {

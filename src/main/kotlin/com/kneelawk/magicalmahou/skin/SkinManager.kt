@@ -1,4 +1,4 @@
-package com.kneelawk.magicalmahou.image
+package com.kneelawk.magicalmahou.skin
 
 import java.io.IOException
 import java.nio.file.Path
@@ -33,10 +33,10 @@ interface SkinManager {
      *
      * @param data the byte array containing PNG data.
      * @param playerId the UUID of the player to which this skin is attached.
-     * @throws InvalidImageException if the byte array did not contain PNG data or contained an image of the wrong
+     * @throws InvalidSkinException if the byte array did not contain PNG data or contained an image of the wrong
      * dimensions.
      */
-    @Throws(InvalidImageException::class)
+    @Throws(InvalidSkinException::class)
     fun loadPNGFromBytes(data: ByteArray, playerId: UUID)
 
     /**
@@ -46,10 +46,10 @@ interface SkinManager {
      * @param playerId the UUID of the player to which this skin is attached.
      * @param convertLegacy if this skin manager manages 64x64 skins this option can be used to convert a 64x32 "legacy"
      * player skin to a 64x64 player skin.
-     * @throws InvalidImageException if the requested file does not contain PNG data or contains an image of the wrong
+     * @throws InvalidSkinException if the requested file does not contain PNG data or contains an image of the wrong
      * dimensions.
      */
-    @Throws(InvalidImageException::class)
+    @Throws(InvalidSkinException::class)
     fun loadPNGFromFile(path: Path, playerId: UUID, convertLegacy: Boolean)
 
     /**

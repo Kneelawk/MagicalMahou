@@ -1,8 +1,8 @@
-package com.kneelawk.magicalmahou.server.image
+package com.kneelawk.magicalmahou.server.skin
 
 import com.kneelawk.magicalmahou.MMLog
-import com.kneelawk.magicalmahou.image.InvalidImageException
-import com.kneelawk.magicalmahou.image.SkinManager
+import com.kneelawk.magicalmahou.skin.InvalidSkinException
+import com.kneelawk.magicalmahou.skin.SkinManager
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
@@ -59,13 +59,13 @@ class ServerSkinManager(override val imageWidth: Int, override val imageHeight: 
         var newImage = bufferedImage
 
         if (imageWidth != bufferedImage.width) {
-            throw InvalidImageException.WrongDimensions(
+            throw InvalidSkinException.WrongDimensions(
                 imageWidth, imageHeight, bufferedImage.width, bufferedImage.height
             )
         } else if (convertLegacy && imageWidth == 64 && imageHeight == 64 && bufferedImage.height == 32) {
             newImage = ServerSkinUtils.convertLegacyPlayerSkin(bufferedImage)
         } else if (imageHeight != bufferedImage.height) {
-            throw InvalidImageException.WrongDimensions(
+            throw InvalidSkinException.WrongDimensions(
                 imageWidth, imageHeight, bufferedImage.width, bufferedImage.height
             )
         }
@@ -79,7 +79,7 @@ class ServerSkinManager(override val imageWidth: Int, override val imageHeight: 
         try {
             newImage = ImageIO.read(ByteArrayInputStream(data))
         } catch (e: IOException) {
-            throw InvalidImageException.BadImage(e)
+            throw InvalidSkinException.BadImage(e)
         }
 
         putBufferedImage(playerId, newImage, false)
@@ -90,7 +90,7 @@ class ServerSkinManager(override val imageWidth: Int, override val imageHeight: 
         try {
             newImage = ImageIO.read(Files.newInputStream(path))
         } catch (e: IOException) {
-            throw InvalidImageException.BadImage(e)
+            throw InvalidSkinException.BadImage(e)
         }
 
         putBufferedImage(playerId, newImage, convertLegacy)

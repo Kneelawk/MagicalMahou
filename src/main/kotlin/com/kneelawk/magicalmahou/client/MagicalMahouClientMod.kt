@@ -2,12 +2,12 @@ package com.kneelawk.magicalmahou.client
 
 import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.block.MMBlocksClient
-import com.kneelawk.magicalmahou.client.image.ClientSkinManager
-import com.kneelawk.magicalmahou.client.image.ClientSkinManagers
+import com.kneelawk.magicalmahou.client.skin.ClientSkinManager
+import com.kneelawk.magicalmahou.client.skin.ClientSkinManagers
 import com.kneelawk.magicalmahou.client.render.player.CatEarsFeatureRenderer
 import com.kneelawk.magicalmahou.client.screen.MMScreens
 import com.kneelawk.magicalmahou.component.MMComponents
-import com.kneelawk.magicalmahou.image.SkinManagers
+import com.kneelawk.magicalmahou.skin.SkinManagers
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
 import com.kneelawk.magicalmahou.proxy.ClientProxy
 import com.kneelawk.magicalmahou.proxy.MMProxy

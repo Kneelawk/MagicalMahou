@@ -1,4 +1,4 @@
-package com.kneelawk.magicalmahou.image
+package com.kneelawk.magicalmahou.skin
 
 import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.util.SaveDirUtils
@@ -28,9 +28,9 @@ object SkinUtils {
      * @param uuid the UUID of the player to load the skin for.
      * @param world the world that the player is in (used to tell things like logical side and save dir).
      * @return `true` if the load operation was successful, `false` otherwise.
-     * @throws InvalidImageException if there was an error while loading the image.
+     * @throws InvalidSkinException if there was an error while loading the image.
      */
-    @Throws(InvalidImageException::class)
+    @Throws(InvalidSkinException::class)
     fun loadPlayerSkin(idStr: String, uuid: UUID, world: World): Boolean {
         MMLog.debug("Loading player skin...")
         val skinPath = SaveDirUtils.getPlayerSkinStorageFile(world, idStr, false)
@@ -45,10 +45,10 @@ object SkinUtils {
             skinManager.loadPNGFromFile(skinPath, uuid, true)
             skinManager.update(uuid)
             return true
-        } catch (e: InvalidImageException) {
+        } catch (e: InvalidSkinException) {
             when (e) {
-                is InvalidImageException.BadImage -> MMLog.warn("Error while loading player skin from save", e)
-                is InvalidImageException.WrongDimensions -> MMLog.warn(
+                is InvalidSkinException.BadImage -> MMLog.warn("Error while loading player skin from save", e)
+                is InvalidSkinException.WrongDimensions -> MMLog.warn(
                     "Loaded saved player skin with wrong dimensions. Should be (${e.requiredWidth}x${e.requiredHeight}) but were (${e.requiredWidth}x${e.providedHeight})",
                     e
                 )

@@ -4,10 +4,10 @@ import alexiil.mc.lib.net.ActiveConnection
 import alexiil.mc.lib.net.impl.CoreMinecraftNetUtil
 import com.kneelawk.magicalmahou.MMConstants.str
 import com.kneelawk.magicalmahou.MMLog
-import com.kneelawk.magicalmahou.image.InvalidImageException
-import com.kneelawk.magicalmahou.image.PlayerSkinModel
-import com.kneelawk.magicalmahou.image.SkinManagers
-import com.kneelawk.magicalmahou.image.SkinUtils
+import com.kneelawk.magicalmahou.skin.InvalidSkinException
+import com.kneelawk.magicalmahou.skin.PlayerSkinModel
+import com.kneelawk.magicalmahou.skin.SkinManagers
+import com.kneelawk.magicalmahou.skin.SkinUtils
 import com.kneelawk.magicalmahou.net.*
 import com.kneelawk.magicalmahou.proxy.MMProxy
 import com.kneelawk.magicalmahou.util.SaveDirUtils
@@ -18,7 +18,6 @@ import dev.onyxstudios.cca.api.v3.component.tick.CommonTickingComponent
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.NbtCompound
-import net.minecraft.particle.ParticleTypes
 import java.util.*
 
 /**
@@ -140,12 +139,12 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
                     // Send skin to other players
                     syncToEveryone(true)
-                } catch (e: InvalidImageException) {
+                } catch (e: InvalidSkinException) {
                     when (e) {
-                        is InvalidImageException.BadImage -> MMLog.warn(
+                        is InvalidSkinException.BadImage -> MMLog.warn(
                             "Error receiving C2S_PLAYER_SKIN_SYNC packet", e
                         )
-                        is InvalidImageException.WrongDimensions -> MMLog.warn(
+                        is InvalidSkinException.WrongDimensions -> MMLog.warn(
                             "Received C2S_PLAYER_SKIN_SYNC packet with wrong dimensions. Should be (${e.requiredWidth}x${e.requiredHeight}) but were (${e.requiredWidth}x${e.providedHeight})",
                             e
                         )

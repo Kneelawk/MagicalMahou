@@ -1,9 +1,9 @@
 package com.kneelawk.magicalmahou.client
 
-import com.kneelawk.magicalmahou.client.image.ClientSkinManagers
+import com.kneelawk.magicalmahou.client.skin.ClientSkinManagers
 import com.kneelawk.magicalmahou.component.MMComponents
-import com.kneelawk.magicalmahou.image.InvalidImageException
-import com.kneelawk.magicalmahou.image.SkinUtils
+import com.kneelawk.magicalmahou.skin.InvalidSkinException
+import com.kneelawk.magicalmahou.skin.SkinUtils
 import com.kneelawk.magicalmahou.util.EnumUtils
 import com.kneelawk.magicalmahou.util.SaveDirUtils
 import com.mojang.blaze3d.systems.RenderSystem
@@ -129,12 +129,12 @@ object MMKeys {
 
                             // Set server-side skin
                             MMComponents.GENERAL[player].clientSendSkinUpdate()
-                        } catch (e: InvalidImageException) {
+                        } catch (e: InvalidSkinException) {
                             when (e) {
-                                is InvalidImageException.BadImage -> player.sendMessage(
+                                is InvalidSkinException.BadImage -> player.sendMessage(
                                     TranslatableText("message.magical-mahou.bad-image", e.cause), false
                                 )
-                                is InvalidImageException.WrongDimensions -> player.sendMessage(
+                                is InvalidSkinException.WrongDimensions -> player.sendMessage(
                                     TranslatableText(
                                         "message.magical-mahou.player-skin-wrong-dimensions", e.providedWidth,
                                         e.providedHeight

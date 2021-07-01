@@ -1,10 +1,10 @@
 package com.kneelawk.magicalmahou.server
 
-import com.kneelawk.magicalmahou.image.SkinManagerHolder
-import com.kneelawk.magicalmahou.image.SkinManagers
+import com.kneelawk.magicalmahou.skin.SkinManagerHolder
+import com.kneelawk.magicalmahou.skin.SkinManagers
 import com.kneelawk.magicalmahou.proxy.MMProxy
 import com.kneelawk.magicalmahou.proxy.ServerProxy
-import com.kneelawk.magicalmahou.server.image.ServerSkinManager
+import com.kneelawk.magicalmahou.server.skin.ServerSkinManager
 
 fun init() {
     MMProxy.init(ServerProxy)

@@ -1,4 +1,4 @@
-package com.kneelawk.magicalmahou.client.image
+package com.kneelawk.magicalmahou.client.skin
 
 import net.minecraft.client.texture.NativeImage
 
