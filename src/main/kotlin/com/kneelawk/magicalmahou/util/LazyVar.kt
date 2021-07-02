@@ -3,7 +3,7 @@ package com.kneelawk.magicalmahou.util
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-class LazyVar<T>(initializer: () -> T) : ReadWriteProperty<Any?, T> {
+class LazyVar<T>(initializer: () -> T, private val onSet: ((T) -> Unit)? = null) : ReadWriteProperty<Any?, T> {
     private var initializer: (() -> T)? = initializer
     private var value: Any? = Uninitialized
 
@@ -26,6 +26,7 @@ class LazyVar<T>(initializer: () -> T) : ReadWriteProperty<Any?, T> {
     }
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        onSet?.invoke(value)
         synchronized(this) {
             this.value = value
         }
@@ -34,4 +35,4 @@ class LazyVar<T>(initializer: () -> T) : ReadWriteProperty<Any?, T> {
     private object Uninitialized
 }
 
-fun <T> lazyVar(initializer: () -> T): LazyVar<T> = LazyVar(initializer)
+fun <T> lazyVar(initializer: () -> T, onSet: ((T) -> Unit)? = null): LazyVar<T> = LazyVar(initializer, onSet)

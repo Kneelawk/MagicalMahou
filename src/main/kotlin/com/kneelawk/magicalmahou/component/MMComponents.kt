@@ -15,4 +15,12 @@ object MMComponents {
         // have multiple skins per player.
         registry.registerForPlayers(GENERAL, ::MagicalMahouComponent, RespawnCopyStrategy.ALWAYS_COPY)
     }
+
+    private val ABILITY_COMPONENTS = mutableListOf<ComponentKey<out MMAbilityComponent>>()
+
+    fun getAbilityComponents(): List<ComponentKey<out MMAbilityComponent>> = ABILITY_COMPONENTS
+
+    fun registerAbilityComponent(key: ComponentKey<out MMAbilityComponent>) {
+        ABILITY_COMPONENTS.add(key)
+    }
 }

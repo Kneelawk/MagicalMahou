@@ -80,6 +80,15 @@ dependencies {
 
     // Non-Fabric dependencies
 
+    // Api dependencies
+
+    modApi("io.github.cottonmc:LibGui:${project.libgui_version}") {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    include "io.github.cottonmc:LibGui:${project.libgui_version}"
+
+    // Implementation dependencies
+
     modImplementation("io.github.ladysnake:satin:${project.satin_version}") {
         exclude group: 'net.fabricmc.fabric-api'
     }
@@ -102,11 +111,6 @@ dependencies {
         exclude group: 'net.fabricmc.fabric-api'
     }
     include "alexiil.mc.lib:libnetworkstack-base:${project.lns_version}"
-
-    modImplementation("io.github.cottonmc:LibGui:${project.libgui_version}") {
-        exclude group: 'net.fabricmc.fabric-api'
-    }
-    include "io.github.cottonmc:LibGui:${project.libgui_version}"
 
 
     // Runtime dependencies (compatibility testing mostly)

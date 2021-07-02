@@ -5,8 +5,10 @@ import alexiil.mc.lib.net.impl.CoreMinecraftNetUtil
 import com.kneelawk.magicalmahou.MMConstants.str
 import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.client.particle.MMParticlesClient
+import com.kneelawk.magicalmahou.component.ComponentHelper.withScreenHandler
 import com.kneelawk.magicalmahou.net.*
 import com.kneelawk.magicalmahou.proxy.MMProxy
+import com.kneelawk.magicalmahou.screenhandler.CrystalBallScreenHandler
 import com.kneelawk.magicalmahou.skin.InvalidSkinException
 import com.kneelawk.magicalmahou.skin.PlayerSkinModel
 import com.kneelawk.magicalmahou.skin.SkinManagers
@@ -45,10 +47,12 @@ import java.util.*
  *        the `S2C_FULL_WITHOUT_SKIN_SYNC` packet, and the `C2S_PLAYER_SKIN_SYNC` packet. (Should the default value
  *        be retrieved from the client if the server doesn't have a valid version?)
  *     2. Add synchronization to:
- *         * `ID_S2C_FULL_SYNC` in the read-writer.
- *         * `ID_S2C_FULL_WITHOUT_SKIN_SYNC` in the read-writer.
- *         * `ID_C2S_PLAYER_SKIN_SYNC` in the read-writer.
- *         * `ID_S2C_FULL_SYNC` in `syncTo(ActiveConnection, ByteArray)`.
+ *         * `ID_S2C_FULL_SYNC` in the reader.
+ *         * `ID_S2C_FULL_WITHOUT_SKIN_SYNC` in the reader.
+ *         * `ID_C2S_PLAYER_SKIN_SYNC` in the reader.
+ *         * `ID_S2C_FULL_WITHOUT_SKIN_SYNC` in the `sendFullWithoutSkinSync(ActiveConnection, Boolean)` writer.
+ *         * `ID_S2C_FULL_SYNC` in the `sendFullSync(ActiveConnection, Boolean, ByteArray)` writer.
+ *         * `ID_S2C_FULL_SYNC` in the `sendFullSync(ActiveConnection, Boolean)` writer.
  * 5. Consider edit events.
  *     1. Add a C2S packet for the event and a S2C packet for the event.
  *     2. Consider packet throttling and a rejection S2C packet.
@@ -91,6 +95,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             playerSkinManager.loadPNGFromBytes(buf.readByteArray(65536), playerId)
             playerSkinManager.update(playerId)
             playerSkinModel = PlayerSkinModel.byId(buf.readByte().toInt())
+            transformationColor = buf.readInt()
         }
 
         /**
@@ -110,6 +115,8 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                 if (displayTransform && !previousTransformed && isActuallyTransformed()) {
                     displayTransform()
                 }
+
+                transformationColor = buf.readInt()
 
                 // this is only run on the client
                 val clientPlayer = MinecraftClient.getInstance().player
@@ -210,6 +217,34 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             },
             { buf, _ -> buf.writeByte(playerSkinModel.id) }
         )
+
+        /**
+         * Sent by the client when the client wants to change the player's transformation color.
+         */
+        private val ID_C2S_SET_TRANSFORMATION_COLOR =
+            NET_PARENT.idData("C2S_SET_TRANSFORMATION_COLOR").setC2SReceiver { buf, ctx ->
+                MMLog.debug("Received C2S_SET_TRANSFORMATION_COLOR packet")
+                if (isMagical) {
+                    transformationColor = buf.readInt()
+
+                    for (conn in CoreMinecraftNetUtil.getPlayersWatching(provider.world, provider.blockPos)) {
+                        ID_S2C_SET_TRANSFORMATION_COLOR.send(conn, this)
+                    }
+                } else {
+                    ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
+                }
+            }
+
+        /**
+         * Sent by the server when the server has deemed that the player's transformation color should be updated.
+         */
+        private val ID_S2C_SET_TRANSFORMATION_COLOR = NET_PARENT.idData("S2C_SET_TRANSFORMATION_COLOR").setS2CReadWrite(
+            { buf, _ ->
+                MMLog.debug("Received S2C_SET_TRANSFORMATION_COLOR packet")
+                transformationColor = buf.readInt()
+            },
+            { buf, _ -> buf.writeInt(transformationColor) }
+        )
     }
 
     override val key = MMComponents.GENERAL
@@ -223,10 +258,6 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         provider.uuid
     }
 
-    /* Listeners */
-
-    private val isMagicalListeners = mutableListOf<(Boolean) -> Unit>()
-
     /* Initialization Tracking */
 
     private var syncRequestSent = false
@@ -237,14 +268,11 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     private var isTransformed = false
     var isMagical = false
         private set(value) {
-            val previous = field
             field = value
 
-            // notify listeners
-            if (previous != value) {
-                for (listener in isMagicalListeners) {
-                    listener(value)
-                }
+            // update ui
+            withScreenHandler<CrystalBallScreenHandler>(provider) {
+                it.s2cReceiveIsMagicalChange(value)
             }
         }
 
@@ -252,11 +280,19 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     // from a file, we can say that the skin is now valid.
     private var needsC2SSkinSync = !provider.world.isClient
 
-    var playerSkinModel by lazyVar {
+    var playerSkinModel by lazyVar({
         // We can't do this in the constructor because the network manager wouldn't have been initialized by then and we
         // can't do this in the `tick()` function because the player skin might not have been loaded by then.
         MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
-    }
+    }, { value ->
+        // update ui
+        withScreenHandler<CrystalBallScreenHandler>(provider) {
+            it.s2cReceiveSkinModelChange(value)
+        }
+    })
+        private set
+
+    var transformationColor = 0xFFFFFFFF.toInt()
         private set
 
 
@@ -299,6 +335,15 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         }
     }
 
+    fun clientSetTransformationColor(newTransformationColor: Int) {
+        if (isMagical) {
+            ID_C2S_SET_TRANSFORMATION_COLOR.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
+                ctx.assertClientSide()
+                buf.writeInt(newTransformationColor)
+            }
+        }
+    }
+
     /**
      * Used on the server-side to make a player magical.
      */
@@ -306,16 +351,6 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         isMagical = true
         isTransformed = true
         syncToEveryone(exceptSelf = false, displayTransform = true)
-    }
-
-    /* Usable Methods : Event Listener Methods */
-
-    fun addIsMagicalListener(listener: (Boolean) -> Unit) {
-        isMagicalListeners.add(listener)
-    }
-
-    fun removeIsMagicalListener(listener: (Boolean) -> Unit) {
-        println("Success: " + isMagicalListeners.remove(listener))
     }
 
 
@@ -329,7 +364,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         val y = provider.y + provider.height / 2.0
         val z = provider.z
 
-        MMParticlesClient.addTransformationParticles(x, y, z, 0.5, 3, 0xFF00AAFF.toInt())
+        MMParticlesClient.addTransformationParticles(x, y, z, 0.5, 3, transformationColor)
     }
 
 
@@ -408,6 +443,12 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         if (tag.contains("needsC2SSkinSync")) {
             needsC2SSkinSync = needsC2SSkinSync && tag.getBoolean("needsC2SSkinSync")
         }
+
+        transformationColor = if (tag.contains("transformationColor")) {
+            tag.getInt("transformationColor")
+        } else {
+            0xFFFFFFFF.toInt()
+        }
     }
 
     override fun writeToNbt(tag: NbtCompound) {
@@ -430,6 +471,8 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
         // If we've never been magical and thus never had a valid skin, we should keep track of that.
         tag.putBoolean("needsC2SSkinSync", needsC2SSkinSync)
+
+        tag.putInt("transformationColor", transformationColor)
     }
 
     override fun copyFrom(other: MagicalMahouComponent) {
@@ -444,6 +487,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         isTransformed = other.isTransformed
         needsC2SSkinSync = other.needsC2SSkinSync
         playerSkinModel = other.playerSkinModel
+        transformationColor = other.transformationColor
     }
 
 
@@ -517,6 +561,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             ctx.assertServerSide()
             buf.writeBoolean(isTransformed)
             buf.writeBoolean(displayTransform)
+            buf.writeInt(transformationColor)
         }
     }
 
@@ -530,6 +575,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             buf.writeBoolean(displayTransform)
             buf.writeByteArray(playerSkinBytes)
             buf.writeByte(playerSkinModel.id)
+            buf.writeInt(transformationColor)
         }
     }
 
@@ -543,6 +589,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             buf.writeBoolean(displayTransform)
             buf.writeByteArray(playerSkinManager.storePNGToBytes(playerId))
             buf.writeByte(playerSkinModel.id)
+            buf.writeInt(transformationColor)
         }
     }
 }

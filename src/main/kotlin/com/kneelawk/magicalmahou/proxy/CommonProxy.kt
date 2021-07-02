@@ -5,4 +5,8 @@ import net.minecraft.entity.player.PlayerEntity
 
 interface CommonProxy {
     fun getDefaultPlayerSkinModel(player: PlayerEntity): PlayerSkinModel
+
+    fun uploadPlayerSkin(player: PlayerEntity)
+
+    fun pickTransformationColor(player: PlayerEntity)
 }
