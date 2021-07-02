@@ -74,12 +74,14 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
         mainPanel.add(configureSkinButton, 0, 2, 9, 1)
         configureSkinButton.onClick = {
             root.selectedIndex = 2
+            ScreenHandlerHelper.lastOpenCrystalBallCard = 2
         }
 
         val configureAbilitiesButton = WScalableButton(gui("crystal_ball.configure_abilities"))
         mainPanel.add(configureAbilitiesButton, 0, 3, 9, 1)
         configureAbilitiesButton.onClick = {
             root.selectedIndex = 3
+            ScreenHandlerHelper.lastOpenCrystalBallCard = 3
         }
 
         root.add(1, mainPanel)
@@ -93,6 +95,7 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
         skinPanel.add(skinBackButton, 0, 0, 1, 1)
         skinBackButton.onClick = {
             root.selectedIndex = 1
+            ScreenHandlerHelper.lastOpenCrystalBallCard = 1
         }
 
         val uploadSkinButton = WScalableButton(gui("crystal_ball.upload_skin"))
@@ -126,6 +129,7 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
         abilityPanel.add(abilityBackButton, 0, 0, 1, 1)
         abilityBackButton.onClick = {
             root.selectedIndex = 1
+            ScreenHandlerHelper.lastOpenCrystalBallCard = 1
         }
 
         val abilityButtonsPanel = WCardPanel()
@@ -168,7 +172,10 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
 
         // Select the current panel depending on whether the player is magical or not
         if (component.isMagical) {
-            root.selectedIndex = 1
+            if (ScreenHandlerHelper.lastOpenCrystalBallCard < 1 || ScreenHandlerHelper.lastOpenCrystalBallCard > 3) {
+                ScreenHandlerHelper.lastOpenCrystalBallCard = 1
+            }
+            root.selectedIndex = ScreenHandlerHelper.lastOpenCrystalBallCard
         } else {
             root.selectedIndex = 0
         }
