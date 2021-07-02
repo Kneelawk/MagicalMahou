@@ -42,6 +42,9 @@ repositories {
         // Mod Menu
         name = "TerraformersMC"
         url = "https://maven.terraformersmc.com/releases/"
+        content {
+            includeGroup 'com.terraformersmc'
+        }
     }
     mavenCentral()
     maven {
