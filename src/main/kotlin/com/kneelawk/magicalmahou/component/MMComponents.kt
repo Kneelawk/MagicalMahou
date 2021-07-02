@@ -9,11 +9,14 @@ import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy
 object MMComponents {
     val GENERAL: ComponentKey<MagicalMahouComponent> =
         ComponentRegistry.getOrCreate(id("general"), MagicalMahouComponent::class.java)
+    val CAT_EARS: ComponentKey<CatEarsComponent> =
+        ComponentRegistry.getOrCreate(id("cat_ears"), CatEarsComponent::class.java)
 
     fun registerEntityComponentFactories(registry: EntityComponentFactoryRegistry) {
         // I'm doing ALWAYS_COPY here but I may change it to CHARACTER if I ever implement abilities for SkinManagers to
         // have multiple skins per player.
         registry.registerForPlayers(GENERAL, ::MagicalMahouComponent, RespawnCopyStrategy.ALWAYS_COPY)
+        registry.registerForPlayers(CAT_EARS, ::CatEarsComponent, RespawnCopyStrategy.ALWAYS_COPY)
     }
 
     private val ABILITY_COMPONENTS = mutableListOf<ComponentKey<out MMAbilityComponent>>()
@@ -22,5 +25,9 @@ object MMComponents {
 
     fun registerAbilityComponent(key: ComponentKey<out MMAbilityComponent>) {
         ABILITY_COMPONENTS.add(key)
+    }
+
+    fun mmInit() {
+        registerAbilityComponent(CAT_EARS)
     }
 }

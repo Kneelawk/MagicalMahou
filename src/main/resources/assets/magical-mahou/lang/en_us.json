@@ -1,6 +1,7 @@
 {
   "block.magical-mahou.crystal_ball": "Crystal Ball",
   "category.magical-mahou.general": "Magical Mahou",
+  "component.magical-mahou.cat_ears": "Cat Ears",
   "container.magical-mahou.crystal_ball": "Crystal Ball",
   "gui.magical-mahou.crystal_ball.accept": "Accept Magic",
   "gui.magical-mahou.crystal_ball.change_player_model": "Player Model: %s",

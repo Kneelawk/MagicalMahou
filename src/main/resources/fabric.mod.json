@@ -30,7 +30,8 @@
   },
   "custom": {
     "cardinal-components": [
-      "magical-mahou:general"
+      "magical-mahou:general",
+      "magical-mahou:cat_ears"
     ]
   },
   "mixins": [

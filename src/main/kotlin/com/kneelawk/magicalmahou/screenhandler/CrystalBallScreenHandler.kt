@@ -16,11 +16,15 @@ import io.github.cottonmc.cotton.gui.widget.WGridPanel
 import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import io.github.cottonmc.cotton.gui.widget.data.Insets
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.screen.ScreenHandlerFactory
 import net.minecraft.text.LiteralText
+import kotlin.math.min
 
 class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
     SyncedGuiDescription(MMScreenHandlers.CRYSTAL_BALL, syncId, inventory) {
     companion object {
+        private const val ABILITIES_PER_PAGE = 9
+
         private val NET_PARENT = McNetworkStack.SCREEN_HANDLER.subType(
             CrystalBallScreenHandler::class.java, str("crystal_ball_screen_handler")
         )
@@ -116,6 +120,42 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
             root.selectedIndex = 1
         }
 
+        val abilityButtonsPanel = WCardPanel()
+
+        val abilityButtons = createAbilityButtons()
+        val abilitiesCount = abilityButtons.size
+        for (page in abilityButtons.indices step ABILITIES_PER_PAGE) {
+            val buttonPanel = WGridPanel()
+            for (indexOnPage in 0 until min(ABILITIES_PER_PAGE, abilitiesCount - page)) {
+                val buttonIndex = page + indexOnPage
+                buttonPanel.add(abilityButtons[buttonIndex], indexOnPage, 0, 1, 1)
+            }
+            abilityButtonsPanel.add(page, buttonPanel)
+        }
+
+        abilityPanel.add(abilityButtonsPanel, 0, 3, ABILITIES_PER_PAGE, 1)
+
+        val abilityPageBackButton = WScalableButton(LiteralText("<"))
+        abilityPanel.add(abilityPageBackButton, 0, 4, 1, 1)
+        abilityPageBackButton.enabled = abilityButtonsPanel.selectedIndex > 0
+        abilityPageBackButton.onClick = {
+            if (abilityButtonsPanel.selectedIndex > 0) {
+                abilityButtonsPanel.selectedIndex--
+            }
+            abilityPageBackButton.enabled = abilityButtonsPanel.selectedIndex > 0
+        }
+
+        val abilityPageForwardButton = WScalableButton(LiteralText(">"))
+        abilityPanel.add(abilityPageForwardButton, ABILITIES_PER_PAGE - 1, 4, 1, 1)
+        abilityPageForwardButton.enabled = abilityButtonsPanel.selectedIndex < (abilitiesCount - 1) / ABILITIES_PER_PAGE
+        abilityPageForwardButton.onClick = {
+            if (abilityButtonsPanel.selectedIndex < (abilitiesCount - 1) / ABILITIES_PER_PAGE) {
+                abilityButtonsPanel.selectedIndex++
+            }
+            abilityPageForwardButton.enabled =
+                abilityButtonsPanel.selectedIndex < (abilitiesCount - 1) / ABILITIES_PER_PAGE
+        }
+
         root.add(3, abilityPanel)
 
         // Select the current panel depending on whether the player is magical or not
@@ -126,6 +166,23 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
         }
 
         root.validate(this)
+    }
+
+    private fun createAbilityButtons(): List<WScalableButton> {
+        val list = mutableListOf<WScalableButton>()
+
+        for (key in MMComponents.getAbilityComponents()) {
+            val component = key[playerInventory.player]
+
+            if (component.getPlayerHasComponent()) {
+                val button = WScalableButton(icon = component.icon)
+                button.tooltip = listOf(component.name)
+                button.enabled = component is ScreenHandlerFactory
+                list.add(button)
+            }
+        }
+
+        return list
     }
 
     fun s2cReceiveIsMagicalChange(isMagical: Boolean) {
