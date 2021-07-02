@@ -9,5 +9,6 @@ import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry
 object MMScreens {
     fun init() {
         ScreenRegistry.register(MMScreenHandlers.CRYSTAL_BALL, ::CrystalBallScreen)
+        ScreenRegistry.register(MMScreenHandlers.CAT_EARS, ::CatEarsScreen)
     }
 }

@@ -10,7 +10,7 @@ import dev.onyxstudios.cca.api.v3.component.ComponentRegistry
 import net.minecraft.entity.player.PlayerEntity
 
 object MMNetIds {
-    private val COMPONENT_KEY_CACHE = NetObjectCache.createMappedIdentifier<ComponentKey<*>>(
+    val COMPONENT_KEY_CACHE = NetObjectCache.createMappedIdentifier<ComponentKey<*>>(
         McNetworkStack.ROOT.child(MMConstants.str("cache_component")), { key -> key.id },
         { id -> ComponentRegistry.get(id) })
 

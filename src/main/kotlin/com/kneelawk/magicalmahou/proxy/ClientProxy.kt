@@ -2,6 +2,7 @@ package com.kneelawk.magicalmahou.proxy
 
 import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.client.MMClientSettings
+import com.kneelawk.magicalmahou.client.screen.MMScreenUtils
 import com.kneelawk.magicalmahou.client.skin.ClientSkinManagers
 import com.kneelawk.magicalmahou.component.MMComponents
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
@@ -126,5 +127,9 @@ object ClientProxy : CommonProxy {
 
             uiThread.start()
         }
+    }
+
+    override fun presetCursorPosition() {
+        MMScreenUtils.presetCursorPosition()
     }
 }

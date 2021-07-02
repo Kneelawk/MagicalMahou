@@ -5,6 +5,7 @@ import alexiil.mc.lib.net.impl.McNetworkStack
 import com.kneelawk.magicalmahou.MMConstants.gui
 import com.kneelawk.magicalmahou.MMConstants.str
 import com.kneelawk.magicalmahou.component.MMComponents
+import com.kneelawk.magicalmahou.net.MMNetIds
 import com.kneelawk.magicalmahou.net.setC2SReceiver
 import com.kneelawk.magicalmahou.proxy.MMProxy
 import com.kneelawk.magicalmahou.screenhandler.widget.WScalableButton
@@ -16,7 +17,7 @@ import io.github.cottonmc.cotton.gui.widget.WGridPanel
 import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import io.github.cottonmc.cotton.gui.widget.data.Insets
 import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.screen.ScreenHandlerFactory
+import net.minecraft.screen.NamedScreenHandlerFactory
 import net.minecraft.text.LiteralText
 import kotlin.math.min
 
@@ -31,6 +32,13 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
 
         private val ID_ACCEPT = NET_PARENT.idSignal("ACCEPT").setC2SReceiver {
             component.serverMakeMagical()
+        }
+
+        private val ID_OPEN_ABILITY = NET_PARENT.idData("OPEN_ABILITY").setC2SReceiver { buf, ctx ->
+            val key =
+                MMNetIds.COMPONENT_KEY_CACHE.getObj(ctx.connection, buf.readVarUnsignedInt()) ?: return@setC2SReceiver
+            val component = key[ctx.connection.player] as? NamedScreenHandlerFactory ?: return@setC2SReceiver
+            ctx.connection.player.openHandledScreen(component)
         }
     }
 
@@ -177,7 +185,16 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
             if (component.getPlayerHasComponent()) {
                 val button = WScalableButton(icon = component.icon)
                 button.tooltip = listOf(component.name)
-                button.enabled = component is ScreenHandlerFactory
+                button.enabled = component is NamedScreenHandlerFactory
+                button.onClick = {
+                    if (component is NamedScreenHandlerFactory) {
+                        MMProxy.getProxy().presetCursorPosition()
+                        ID_OPEN_ABILITY.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
+                            ctx.assertClientSide()
+                            buf.writeVarUnsignedInt(MMNetIds.COMPONENT_KEY_CACHE.getId(ctx.connection, component.key))
+                        }
+                    }
+                }
                 list.add(button)
             }
         }

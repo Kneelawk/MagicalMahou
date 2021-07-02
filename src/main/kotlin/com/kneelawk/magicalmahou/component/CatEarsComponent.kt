@@ -2,7 +2,9 @@ package com.kneelawk.magicalmahou.component
 
 import alexiil.mc.lib.net.NetByteBuf
 import com.kneelawk.magicalmahou.MMConstants.tt
+import com.kneelawk.magicalmahou.component.ComponentHelper.withScreenHandler
 import com.kneelawk.magicalmahou.icon.MMIcons
+import com.kneelawk.magicalmahou.screenhandler.CatEarsScreenHandler
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent
 import net.minecraft.entity.player.PlayerEntity
@@ -15,7 +17,8 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 
 class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerComponent<CatEarsComponent>,
-    CopyableComponent<CatEarsComponent>, MMAbilityComponent, AutoSyncedComponent, NamedScreenHandlerFactory {
+    CopyableComponent<CatEarsComponent>, MMAbilityComponent<CatEarsComponent>, AutoSyncedComponent,
+    NamedScreenHandlerFactory {
 
     companion object {
         val NAME = tt("component", "cat_ears")
@@ -36,6 +39,13 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
 
     fun isCatEarsActuallyEnabled(): Boolean {
         return hasCatEars && catEarsEnabled
+    }
+
+    fun serverSetCatEarsEnabled(newCatEarsEnabled: Boolean) {
+        if (hasCatEars) {
+            catEarsEnabled = newCatEarsEnabled
+            key.sync(provider)
+        }
     }
 
     override fun getPlayerHasComponent(): Boolean {
@@ -76,10 +86,15 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
         val buf = NetByteBuf.asNetByteBuf(packetBuf)
         hasCatEars = buf.readBoolean()
         catEarsEnabled = buf.readBoolean()
+
+        // update ui
+        withScreenHandler<CatEarsScreenHandler>(provider) {
+            it.s2cReceiveCatEarsEnabled(isCatEarsActuallyEnabled())
+        }
     }
 
     override fun createMenu(syncId: Int, inv: PlayerInventory, player: PlayerEntity): ScreenHandler {
-        TODO("Not yet implemented")
+        return CatEarsScreenHandler(syncId, inv)
     }
 
     override fun getDisplayName(): Text {

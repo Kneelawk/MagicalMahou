@@ -16,4 +16,8 @@ object ServerProxy : CommonProxy {
     override fun pickTransformationColor(player: PlayerEntity) {
         MMLog.warn("Pick transformation color called on the server")
     }
+
+    override fun presetCursorPosition() {
+        MMLog.warn("Preset cursor position called on the server")
+    }
 }

@@ -9,4 +9,6 @@ interface CommonProxy {
     fun uploadPlayerSkin(player: PlayerEntity)
 
     fun pickTransformationColor(player: PlayerEntity)
+
+    fun presetCursorPosition()
 }

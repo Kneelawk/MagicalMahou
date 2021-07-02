@@ -1,7 +1,7 @@
 package com.kneelawk.magicalmahou.block
 
-import com.kneelawk.magicalmahou.MMConstants.tt
 import com.kneelawk.magicalmahou.screenhandler.CrystalBallScreenHandler
+import com.kneelawk.magicalmahou.screenhandler.MMScreenHandlers
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
@@ -16,10 +16,6 @@ import net.minecraft.world.World
 import java.util.*
 
 class CrystalBallBlock(settings: Settings) : Block(settings) {
-    companion object {
-        private val TITLE = tt("container", "crystal_ball")
-    }
-
     override fun onUse(
         state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, hit: BlockHitResult
     ): ActionResult {
@@ -34,9 +30,7 @@ class CrystalBallBlock(settings: Settings) : Block(settings) {
     override fun createScreenHandlerFactory(
         state: BlockState, world: World, pos: BlockPos
     ): NamedScreenHandlerFactory {
-        return SimpleNamedScreenHandlerFactory(
-            { syncId, inventory, _ -> CrystalBallScreenHandler(syncId, inventory) }, TITLE
-        )
+        return MMScreenHandlers.createCrystalBallScreenHandlerFactory()
     }
 
     override fun randomDisplayTick(state: BlockState, world: World, pos: BlockPos, random: Random) {

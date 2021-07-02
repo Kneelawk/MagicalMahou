@@ -19,11 +19,11 @@ object MMComponents {
         registry.registerForPlayers(CAT_EARS, ::CatEarsComponent, RespawnCopyStrategy.ALWAYS_COPY)
     }
 
-    private val ABILITY_COMPONENTS = mutableListOf<ComponentKey<out MMAbilityComponent>>()
+    private val ABILITY_COMPONENTS = mutableListOf<ComponentKey<out MMAbilityComponent<*>>>()
 
-    fun getAbilityComponents(): List<ComponentKey<out MMAbilityComponent>> = ABILITY_COMPONENTS
+    fun getAbilityComponents(): List<ComponentKey<out MMAbilityComponent<*>>> = ABILITY_COMPONENTS
 
-    fun registerAbilityComponent(key: ComponentKey<out MMAbilityComponent>) {
+    fun registerAbilityComponent(key: ComponentKey<out MMAbilityComponent<*>>) {
         ABILITY_COMPONENTS.add(key)
     }
 
