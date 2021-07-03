@@ -13,6 +13,7 @@ import org.lwjgl.glfw.GLFW
 object MMKeys {
     private lateinit var PRINT_SKIN: KeyBinding
     private lateinit var TRANSFORM: KeyBinding
+    private lateinit var TELEPORT_AT: KeyBinding
 
     fun register() {
         PRINT_SKIN = KeyBindingHelper.registerKeyBinding(
@@ -24,6 +25,12 @@ object MMKeys {
         TRANSFORM = KeyBindingHelper.registerKeyBinding(
             KeyBinding(
                 "key.magical-mahou.transform", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R,
+                "category.magical-mahou.general"
+            )
+        )
+        TELEPORT_AT = KeyBindingHelper.registerKeyBinding(
+            KeyBinding(
+                "key.magical-mahou.teleport_at", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V,
                 "category.magical-mahou.general"
             )
         )
@@ -44,6 +51,18 @@ object MMKeys {
                     if (component.isMagical) {
                         val transformed = component.isActuallyTransformed()
                         component.clientRequestTransform(!transformed)
+                    }
+                }
+            }
+
+            while (TELEPORT_AT.wasPressed()) {
+                client.player?.let { player ->
+                    val general = MMComponents.GENERAL[player]
+                    val teleportAt = MMComponents.TELEPORT_AT[player]
+
+                    if (general.isActuallyTransformed() && teleportAt.isActuallyEnabled()) {
+                        println("Attempting teleport at")
+                        teleportAt.clientTeleportAt()
                     }
                 }
             }

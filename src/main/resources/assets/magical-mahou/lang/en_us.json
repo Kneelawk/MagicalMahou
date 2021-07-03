@@ -16,10 +16,12 @@
   "gui.magical-mahou.enabled": "Enabled",
   "itemGroup.magical-mahou.magical-mahou": "Magical Mahou",
   "key.magical-mahou.print-skin": "Print Skin",
+  "key.magical-mahou.teleport_at": "Teleport At",
   "key.magical-mahou.transform": "Transform",
   "key.magical-mahou.upload-player-skin": "Upload Player Skin",
   "key.magical-mahou.change-player-model": "Change Player Model",
   "message.magical-mahou.bad-image": "Error opening image: %s",
   "message.magical-mahou.wrong-dimensions": "Image had wrong dimensions. Should have been (%dx%d) but was (%dx%d).",
-  "message.magical-mahou.player-skin-wrong-dimensions": "Image had wrong dimensions. Should have been (64x64) or (64x32) but was (%dx%d)."
+  "message.magical-mahou.player-skin-wrong-dimensions": "Image had wrong dimensions. Should have been (64x64) or (64x32) but was (%dx%d).",
+  "message.magical-mahou.teleport_at.reject": "Unable to teleport"
 }
