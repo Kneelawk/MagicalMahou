@@ -10,5 +10,6 @@ object MMScreens {
     fun init() {
         ScreenRegistry.register(MMScreenHandlers.CRYSTAL_BALL, ::CrystalBallScreen)
         ScreenRegistry.register(MMScreenHandlers.CAT_EARS, ::CatEarsScreen)
+        ScreenRegistry.register(MMScreenHandlers.TELEPORT_AT, ::TeleportAtScreen)
     }
 }

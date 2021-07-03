@@ -4,7 +4,7 @@ import alexiil.mc.lib.net.NetByteBuf
 import com.kneelawk.magicalmahou.MMConstants.tt
 import com.kneelawk.magicalmahou.component.ComponentHelper.withScreenHandler
 import com.kneelawk.magicalmahou.icon.MMIcons
-import com.kneelawk.magicalmahou.screenhandler.CatEarsScreenHandler
+import com.kneelawk.magicalmahou.screenhandler.TeleportAtScreenHandler
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent
 import net.minecraft.entity.player.PlayerEntity
@@ -16,23 +16,20 @@ import net.minecraft.screen.ScreenHandler
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 
-class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerComponent<CatEarsComponent>,
-    CopyableComponent<CatEarsComponent>, MMAbilityComponent<CatEarsComponent>, AutoSyncedComponent,
+class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayerComponent<TeleportAtComponent>,
+    CopyableComponent<TeleportAtComponent>, MMAbilityComponent<TeleportAtComponent>, AutoSyncedComponent,
     NamedScreenHandlerFactory {
 
     companion object {
-        val NAME = tt("component", "cat_ears")
+        val NAME = tt("component", "teleport_at")
 
         private const val DEFAULT_HAS = true
         private const val DEFAULT_ENABLED = true
-
-        // No NET_ID stuff here because, until cat ears can have custom skins, Cardinal Component's synchronization
-        // system will do just fine.
     }
 
-    override val key = MMComponents.CAT_EARS
     override val name = NAME
-    override val icon = MMIcons.CAT_EARS_ICON
+    override val icon = MMIcons.TELEPORTATION_RINGS_ICON
+    override val key = MMComponents.TELEPORT_AT
 
     private var has = DEFAULT_HAS
     private var enabled = DEFAULT_ENABLED
@@ -70,13 +67,12 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
         tag.putBoolean("enabled", enabled)
     }
 
-    override fun copyFrom(other: CatEarsComponent) {
+    override fun copyFrom(other: TeleportAtComponent) {
         has = other.has
         enabled = other.enabled
     }
 
     override fun writeSyncPacket(packetBuf: PacketByteBuf, recipient: ServerPlayerEntity) {
-        // Until cat ears can have custom skins, Cardinal Component's synchronization system will do just fine.
         val buf = NetByteBuf.asNetByteBuf(packetBuf)
         buf.writeBoolean(has)
         buf.writeBoolean(enabled)
@@ -87,14 +83,14 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
         has = buf.readBoolean()
         enabled = buf.readBoolean()
 
-        // update ui
-        withScreenHandler<CatEarsScreenHandler>(provider) {
-            it.s2cReceiveEnabled(isActuallyEnabled())
+        // notify ui
+        withScreenHandler<TeleportAtScreenHandler>(provider) {
+            it.s2cReceiveEnabled(enabled)
         }
     }
 
     override fun createMenu(syncId: Int, inv: PlayerInventory, player: PlayerEntity): ScreenHandler {
-        return CatEarsScreenHandler(syncId, inv)
+        return TeleportAtScreenHandler(syncId, inv)
     }
 
     override fun getDisplayName(): Text {

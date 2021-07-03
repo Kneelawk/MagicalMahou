@@ -11,12 +11,15 @@ object MMComponents {
         ComponentRegistry.getOrCreate(id("general"), MagicalMahouComponent::class.java)
     val CAT_EARS: ComponentKey<CatEarsComponent> =
         ComponentRegistry.getOrCreate(id("cat_ears"), CatEarsComponent::class.java)
+    val TELEPORT_AT: ComponentKey<TeleportAtComponent> =
+        ComponentRegistry.getOrCreate(id("teleport_at"), TeleportAtComponent::class.java)
 
     fun registerEntityComponentFactories(registry: EntityComponentFactoryRegistry) {
         // I'm doing ALWAYS_COPY here but I may change it to CHARACTER if I ever implement abilities for SkinManagers to
         // have multiple skins per player.
         registry.registerForPlayers(GENERAL, ::MagicalMahouComponent, RespawnCopyStrategy.ALWAYS_COPY)
         registry.registerForPlayers(CAT_EARS, ::CatEarsComponent, RespawnCopyStrategy.ALWAYS_COPY)
+        registry.registerForPlayers(TELEPORT_AT, ::TeleportAtComponent, RespawnCopyStrategy.ALWAYS_COPY)
     }
 
     private val ABILITY_COMPONENTS = mutableListOf<ComponentKey<out MMAbilityComponent<*>>>()
@@ -29,5 +32,6 @@ object MMComponents {
 
     fun mmInit() {
         registerAbilityComponent(CAT_EARS)
+        registerAbilityComponent(TELEPORT_AT)
     }
 }

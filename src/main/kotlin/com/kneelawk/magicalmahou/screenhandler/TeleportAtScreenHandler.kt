@@ -15,11 +15,11 @@ import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.text.LiteralText
 
-class CatEarsScreenHandler(syncId: Int, inventory: PlayerInventory) :
-    SyncedGuiDescription(MMScreenHandlers.CAT_EARS, syncId, inventory) {
+class TeleportAtScreenHandler(syncId: Int, inventory: PlayerInventory) :
+    SyncedGuiDescription(MMScreenHandlers.TELEPORT_AT, syncId, inventory) {
     companion object {
         private val NET_PARENT =
-            McNetworkStack.SCREEN_HANDLER.subType(CatEarsScreenHandler::class.java, str("cat_ears"))
+            McNetworkStack.SCREEN_HANDLER.subType(TeleportAtScreenHandler::class.java, str("teleport_at"))
 
         private val ID_OPEN_CRYSTAL_BALL = NET_PARENT.idSignal("OPEN_CRYSTAL_BALL").setC2SReceiver { ctx ->
             ctx.connection.player.openHandledScreen(MMScreenHandlers.createCrystalBallScreenHandlerFactory())
@@ -30,7 +30,7 @@ class CatEarsScreenHandler(syncId: Int, inventory: PlayerInventory) :
         }
     }
 
-    private val component = MMComponents.CAT_EARS[inventory.player]
+    private val component = MMComponents.TELEPORT_AT[inventory.player]
     private val enabledButton: WScalableButton
 
     init {
@@ -44,7 +44,7 @@ class CatEarsScreenHandler(syncId: Int, inventory: PlayerInventory) :
             ID_OPEN_CRYSTAL_BALL.send(CoreMinecraftNetUtil.getClientConnection(), this)
         }
 
-        enabledButton = WScalableButton(gui("cat_ears.enabled", enabled(component.isActuallyEnabled())))
+        enabledButton = WScalableButton(gui("teleport_at.enabled", enabled(component.isActuallyEnabled())))
         root.add(enabledButton, 0, 2, 9, 1)
         enabledButton.onClick = {
             ID_SET_ENABLED.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
@@ -57,6 +57,6 @@ class CatEarsScreenHandler(syncId: Int, inventory: PlayerInventory) :
     }
 
     fun s2cReceiveEnabled(enabled: Boolean) {
-        enabledButton.label = gui("cat_ears.enabled", enabled(enabled))
+        enabledButton.label = gui("teleport_at.enabled", enabled(enabled))
     }
 }

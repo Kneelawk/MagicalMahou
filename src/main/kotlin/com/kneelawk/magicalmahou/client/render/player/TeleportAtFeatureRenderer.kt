@@ -1,10 +1,8 @@
 package com.kneelawk.magicalmahou.client.render.player
 
-import com.kneelawk.magicalmahou.MMConstants.id
+import com.kneelawk.magicalmahou.MMConstants
 import com.kneelawk.magicalmahou.client.render.ObjModelPart
 import com.kneelawk.magicalmahou.component.MMComponents
-import net.fabricmc.api.EnvType
-import net.fabricmc.api.Environment
 import net.minecraft.client.model.ModelPart
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.client.render.RenderLayer
@@ -19,35 +17,42 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.math.Quaternion
 import net.minecraft.util.math.Vec3f
 
-@Environment(EnvType.CLIENT)
-class CatEarsFeatureRenderer(
+class TeleportAtFeatureRenderer(
     ctx: FeatureRendererContext<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>>
 ) : FeatureRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>>(ctx) {
 
-    private val entityModel: BipedEntityModel<AbstractClientPlayerEntity>
+    private val model: BipedEntityModel<AbstractClientPlayerEntity>
 
     init {
         val root = ModelPart(
             listOf(), mapOf(
-                EntityModelPartNames.HEAD to ObjModelPart(
+                EntityModelPartNames.HEAD to ModelPart(listOf(), mapOf()),
+                EntityModelPartNames.HAT to ModelPart(listOf(), mapOf()),
+                EntityModelPartNames.BODY to ModelPart(listOf(), mapOf()),
+                EntityModelPartNames.RIGHT_ARM to ModelPart(listOf(), mapOf()),
+                EntityModelPartNames.LEFT_ARM to ModelPart(listOf(), mapOf()),
+                EntityModelPartNames.RIGHT_LEG to ObjModelPart(
                     listOf(
                         ObjModelPart.ObjPart(
-                            id("models/misc/cat_ears"), Vec3f(0f, -0.5f, 0f),
+                            MMConstants.id("models/misc/teleport_at"), Vec3f(0f, 6f / 16f, 0f),
                             Quaternion.IDENTITY
                         )
                     ),
                     mapOf()
                 ),
-                EntityModelPartNames.HAT to ModelPart(listOf(), mapOf()),
-                EntityModelPartNames.BODY to ModelPart(listOf(), mapOf()),
-                EntityModelPartNames.RIGHT_ARM to ModelPart(listOf(), mapOf()),
-                EntityModelPartNames.LEFT_ARM to ModelPart(listOf(), mapOf()),
-                EntityModelPartNames.RIGHT_LEG to ModelPart(listOf(), mapOf()),
-                EntityModelPartNames.LEFT_LEG to ModelPart(listOf(), mapOf())
+                EntityModelPartNames.LEFT_LEG to ObjModelPart(
+                    listOf(
+                        ObjModelPart.ObjPart(
+                            MMConstants.id("models/misc/teleport_at"), Vec3f(0f, 6f / 16f, 0f),
+                            Quaternion.IDENTITY
+                        )
+                    ),
+                    mapOf()
+                )
             )
         )
 
-        entityModel = BipedEntityModel(root)
+        model = BipedEntityModel(root)
     }
 
     override fun render(
@@ -56,15 +61,14 @@ class CatEarsFeatureRenderer(
         animationProgress: Float, headYaw: Float, headPitch: Float
     ) {
         val general = MMComponents.GENERAL[entity]
-        val catEars = MMComponents.CAT_EARS[entity]
+        val teleportAt = MMComponents.TELEPORT_AT[entity]
 
-        if (general.isActuallyTransformed() && catEars.isActuallyEnabled()) {
-            // This does all the rotation and positioning for me!
-            contextModel.setAttributes(entityModel)
+        if (general.isActuallyTransformed() && teleportAt.isActuallyEnabled()) {
+            contextModel.setAttributes(model)
 
             val consumer = vertexConsumers.getBuffer(RenderLayer.getCutout())
             val overlay = LivingEntityRenderer.getOverlay(entity, 0.0f)
-            entityModel.render(matrices, consumer, light, overlay, 1f, 1f, 1f, 1f)
+            model.render(matrices, consumer, light, overlay, 1f, 1f, 1f, 1f)
         }
     }
 }
