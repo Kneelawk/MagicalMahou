@@ -57,10 +57,9 @@ object MMKeys {
 
             while (TELEPORT_AT.wasPressed()) {
                 client.player?.let { player ->
-                    val general = MMComponents.GENERAL[player]
                     val teleportAt = MMComponents.TELEPORT_AT[player]
 
-                    if (general.isActuallyTransformed() && teleportAt.isActuallyEnabled()) {
+                    if (teleportAt.isActuallyEnabled()) {
                         println("Attempting teleport at")
                         teleportAt.clientTeleportAt()
                     }

@@ -55,10 +55,9 @@ class CatEarsFeatureRenderer(
         entity: AbstractClientPlayerEntity, limbAngle: Float, limbDistance: Float, tickDelta: Float,
         animationProgress: Float, headYaw: Float, headPitch: Float
     ) {
-        val general = MMComponents.GENERAL[entity]
         val catEars = MMComponents.CAT_EARS[entity]
 
-        if (general.isActuallyTransformed() && catEars.isActuallyEnabled()) {
+        if (catEars.isActuallyEnabled()) {
             // This does all the rotation and positioning for me!
             contextModel.setAttributes(entityModel)
 

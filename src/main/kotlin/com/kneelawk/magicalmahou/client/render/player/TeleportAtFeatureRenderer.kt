@@ -60,10 +60,9 @@ class TeleportAtFeatureRenderer(
         entity: AbstractClientPlayerEntity, limbAngle: Float, limbDistance: Float, tickDelta: Float,
         animationProgress: Float, headYaw: Float, headPitch: Float
     ) {
-        val general = MMComponents.GENERAL[entity]
         val teleportAt = MMComponents.TELEPORT_AT[entity]
 
-        if (general.isActuallyTransformed() && teleportAt.isActuallyEnabled()) {
+        if (teleportAt.isActuallyEnabled()) {
             contextModel.setAttributes(model)
 
             val consumer = vertexConsumers.getBuffer(RenderLayer.getCutout())

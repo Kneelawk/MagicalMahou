@@ -73,10 +73,11 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
     override val key = MMComponents.TELEPORT_AT
 
     private var has = DEFAULT_HAS
-    private var enabled = DEFAULT_ENABLED
+    var enabled = DEFAULT_ENABLED
+        private set
 
     fun isActuallyEnabled(): Boolean {
-        return has && enabled
+        return has && enabled && MMComponents.GENERAL[provider].isActuallyTransformed()
     }
 
     fun serverSetEnabled(newEnabled: Boolean) {

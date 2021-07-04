@@ -44,12 +44,12 @@ class TeleportAtScreenHandler(syncId: Int, inventory: PlayerInventory) :
             ID_OPEN_CRYSTAL_BALL.send(CoreMinecraftNetUtil.getClientConnection(), this)
         }
 
-        enabledButton = WScalableButton(gui("teleport_at.enabled", enabled(component.isActuallyEnabled())))
+        enabledButton = WScalableButton(gui("teleport_at.enabled", enabled(component.enabled)))
         root.add(enabledButton, 0, 2, 9, 1)
         enabledButton.onClick = {
             ID_SET_ENABLED.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
                 ctx.assertClientSide()
-                buf.writeBoolean(!component.isActuallyEnabled())
+                buf.writeBoolean(!component.enabled)
             }
         }
 

@@ -35,10 +35,11 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
     override val icon = MMIcons.CAT_EARS_ICON
 
     private var has = DEFAULT_HAS
-    private var enabled = DEFAULT_ENABLED
+    var enabled = DEFAULT_ENABLED
+        private set
 
     fun isActuallyEnabled(): Boolean {
-        return has && enabled
+        return has && enabled && MMComponents.GENERAL[provider].isActuallyTransformed()
     }
 
     fun serverSetEnabled(newEnabled: Boolean) {
@@ -89,7 +90,7 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
 
         // update ui
         withScreenHandler<CatEarsScreenHandler>(provider) {
-            it.s2cReceiveEnabled(isActuallyEnabled())
+            it.s2cReceiveEnabled(enabled)
         }
     }
 
