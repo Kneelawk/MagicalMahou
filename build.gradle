@@ -251,7 +251,7 @@ if (System.getenv("MODRINTH_API_KEY") != null) {
         projectId = 'CqZmZ0Hh'
         versionNumber = project.mod_version
         uploadFile = remapJar
-        releaseType = project.mod_release_type
+        versionType = project.mod_release_type
         changelog = file("changelogs/changelog-${project.mod_version}.md").text
         project.publish_minecraft_versions.split(",").toList().forEach {
             addGameVersion it.trim()
