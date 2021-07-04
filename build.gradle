@@ -38,12 +38,14 @@ repositories {
         name = 'Ladysnake Mods'
         url = 'https://ladysnake.jfrog.io/artifactory/mods'
     }
-    maven {
-        // Mod Menu
-        name = "TerraformersMC"
-        url = "https://maven.terraformersmc.com/releases/"
-        content {
-            includeGroup 'com.terraformersmc'
+    if (isTerraformersMCMavenUp()) {
+        maven {
+            // Mod Menu
+            name = "TerraformersMC"
+            url = "https://maven.terraformersmc.com/releases/"
+            content {
+                includeGroup 'com.terraformersmc'
+            }
         }
     }
     mavenCentral()
@@ -118,8 +120,10 @@ dependencies {
 
     // Runtime dependencies (compatibility testing mostly)
 
-    modRuntime("com.terraformersmc:modmenu:${project.modmenu_version}") {
-        exclude group: "net.fabricmc.fabric-api"
+    if (isTerraformersMCMavenUp()) {
+        modRuntime("com.terraformersmc:modmenu:${project.modmenu_version}") {
+            exclude group: "net.fabricmc.fabric-api"
+        }
     }
 
     // Only use canvas if the com.kneelawk.magicalmahou.usecanvas system property is set
@@ -254,4 +258,19 @@ if (System.getenv("MODRINTH_API_KEY") != null) {
         }
         addLoader 'fabric'
     }
+}
+
+static boolean isTerraformersMCMavenUp() {
+    try {
+        URL url = new URL("https://maven.terraformersmc.com/releases/com/terraformersmc/modmenu/")
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection()
+        connection.setRequestMethod("GET")
+        connection.connect()
+
+        int responseClass = connection.getResponseCode().intdiv(100)
+        return responseClass != 4 && responseClass != 5
+    } catch (IOException e) {
+        println("Error connecting to TerraformersMC maven", e)
+    }
+    return false
 }
