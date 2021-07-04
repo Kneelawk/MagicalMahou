@@ -40,6 +40,7 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
         private const val DEFAULT_HAS = true
         private const val DEFAULT_ENABLED = true
+        private const val TELEPORT_COOLDOWN = 10
         private const val MAX_TELEPORT_DISTANCE = 128.0
 
         private val NET_PARENT =
@@ -47,36 +48,58 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
         private val ID_C2S_TELEPORT_TO = NET_PARENT.idData("C2S_TELEPORT_TO").setC2SReceiver { buf, ctx ->
             MMLog.debug("Received C2S_TELEPORT_TO packet")
-            if (isActuallyEnabled()) {
-                val oldPos = provider.pos
-                val pos = buf.readBlockPos()
 
-                if (TeleportUtils.serverTeleport(provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE)) {
-                    provider.world.playSound(
-                        null, oldPos.x, oldPos.y, oldPos.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS,
-                        1.0F, 1.0F
-                    )
-                    provider.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F)
-                    provider.world.sendEntityStatus(provider, EntityStatuses.ADD_PORTAL_PARTICLES)
+            val oldPos = provider.pos
+            val pos = buf.readBlockPos()
+
+            val now = provider.world.time
+            if (isActuallyEnabled()) {
+                if (now - lastTeleport > TELEPORT_COOLDOWN) {
+                    lastTeleport = now
+
+                    if (TeleportUtils.serverTeleport(provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE)) {
+                        provider.world.playSound(
+                            null, oldPos.x, oldPos.y, oldPos.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
+                            SoundCategory.PLAYERS,
+                            1.0F, 1.0F
+                        )
+                        provider.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F)
+                        provider.world.sendEntityStatus(provider, EntityStatuses.ADD_PORTAL_PARTICLES)
+                    } else {
+                        ID_S2C_TELEPORT_REJECT.send(ctx.connection, this) { _, s2cBuf, s2cCtx ->
+                            s2cCtx.assertServerSide()
+                            s2cBuf.writeByte(RejectionType.NORMAL.id)
+                        }
+                    }
                 } else {
-                    ID_S2C_TELEPORT_REJECT.send(ctx.connection, this)
+                    ID_S2C_TELEPORT_REJECT.send(ctx.connection, this) { _, s2cBuf, s2cCtx ->
+                        s2cCtx.assertServerSide()
+                        s2cBuf.writeByte(RejectionType.THROTTLE.id)
+                    }
                 }
             } else {
                 // make sure the client knows that we're not enabled
                 key.sync(provider)
-                ID_S2C_TELEPORT_REJECT.send(ctx.connection, this)
+                ID_S2C_TELEPORT_REJECT.send(ctx.connection, this) { _, s2cBuf, s2cCtx ->
+                    s2cCtx.assertServerSide()
+                    s2cBuf.writeByte(RejectionType.NORMAL.id)
+                }
             }
         }
 
-        private val ID_S2C_TELEPORT_REJECT = NET_PARENT.idSignal("S2C_TELEPORT_REJECT").setS2CReceiver {
+        private val ID_S2C_TELEPORT_REJECT = NET_PARENT.idData("S2C_TELEPORT_REJECT").setS2CReceiver { buf, _ ->
             MMLog.debug("Received S2C_TELEPORT_REJECT packet")
-            provider.sendMessage(tt("message", "teleport_at.reject"), true)
+            provider.sendMessage(
+                tt("message", "teleport_at.reject.${RejectionType.byId(buf.readByte().toInt()).errorName}"), true
+            )
         }
     }
 
     override val name = NAME
     override val icon = MMIcons.TELEPORTATION_RINGS_ICON
     override val key = MMComponents.TELEPORT_AT
+
+    private var lastTeleport: Long = provider.world.time
 
     private var has = DEFAULT_HAS
     var enabled = DEFAULT_ENABLED
@@ -98,7 +121,7 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
         val resultPos = RaycastUtils.clientRaycast(MAX_TELEPORT_DISTANCE)
 
         if (resultPos == null) {
-            provider.sendMessage(tt("message", "teleport_at.reject"), true)
+            provider.sendMessage(tt("message", "teleport_at.reject.${RejectionType.NORMAL.errorName}"), true)
             return
         }
 
@@ -168,5 +191,22 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
     override fun getDisplayName(): Text {
         return NAME
+    }
+
+    private enum class RejectionType(val errorName: String) {
+        NORMAL("normal"),
+        THROTTLE("throttle");
+
+        companion object {
+            private val VALUES = values()
+            private const val MIN_VALUE = 0
+            private val MAX_VALUE = VALUES.size - 1
+
+            fun byId(id: Int): RejectionType {
+                return VALUES[id.coerceIn(MIN_VALUE, MAX_VALUE)]
+            }
+        }
+
+        val id = ordinal
     }
 }

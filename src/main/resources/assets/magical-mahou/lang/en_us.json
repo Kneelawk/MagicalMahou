@@ -25,5 +25,6 @@
   "message.magical-mahou.bad-image": "Error opening image: %s",
   "message.magical-mahou.wrong-dimensions": "Image had wrong dimensions. Should have been (%dx%d) but was (%dx%d).",
   "message.magical-mahou.player-skin-wrong-dimensions": "Image had wrong dimensions. Should have been (64x64) or (64x32) but was (%dx%d).",
-  "message.magical-mahou.teleport_at.reject": "Unable to teleport"
+  "message.magical-mahou.teleport_at.reject.normal": "Unable to teleport",
+  "message.magical-mahou.teleport_at.reject.throttle": "Too many teleports"
 }
