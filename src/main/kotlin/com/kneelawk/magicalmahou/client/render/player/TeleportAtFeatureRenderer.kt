@@ -34,7 +34,7 @@ class TeleportAtFeatureRenderer(
                 EntityModelPartNames.RIGHT_LEG to ObjModelPart(
                     listOf(
                         ObjModelPart.ObjPart(
-                            MMConstants.id("models/misc/teleport_at"), Vec3f(0f, 6f / 16f, 0f),
+                            MMConstants.id("models/misc/teleport_at"), Vec3f(0f, 9f / 16f, 0f),
                             Quaternion.IDENTITY
                         )
                     ),
@@ -43,7 +43,7 @@ class TeleportAtFeatureRenderer(
                 EntityModelPartNames.LEFT_LEG to ObjModelPart(
                     listOf(
                         ObjModelPart.ObjPart(
-                            MMConstants.id("models/misc/teleport_at"), Vec3f(0f, 6f / 16f, 0f),
+                            MMConstants.id("models/misc/teleport_at"), Vec3f(0f, 9f / 16f, 0f),
                             Quaternion.IDENTITY
                         )
                     ),

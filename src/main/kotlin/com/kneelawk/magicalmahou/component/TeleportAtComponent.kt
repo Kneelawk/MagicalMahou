@@ -15,20 +15,25 @@ import com.kneelawk.magicalmahou.util.RaycastUtils
 import com.kneelawk.magicalmahou.util.TeleportUtils
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent
+import dev.onyxstudios.cca.api.v3.component.tick.ClientTickingComponent
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
+import net.minecraft.entity.EntityStatuses
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.network.PacketByteBuf
+import net.minecraft.particle.ParticleTypes
 import net.minecraft.screen.NamedScreenHandlerFactory
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.sound.SoundCategory
+import net.minecraft.sound.SoundEvents
 import net.minecraft.text.Text
 
 class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayerComponent<TeleportAtComponent>,
     CopyableComponent<TeleportAtComponent>, MMAbilityComponent<TeleportAtComponent>, AutoSyncedComponent,
-    NamedScreenHandlerFactory {
+    NamedScreenHandlerFactory, ClientTickingComponent {
 
     companion object {
         val NAME = tt("component", "teleport_at")
@@ -42,10 +47,18 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
         private val ID_C2S_TELEPORT_TO = NET_PARENT.idData("C2S_TELEPORT_TO").setC2SReceiver { buf, ctx ->
             MMLog.debug("Received C2S_TELEPORT_TO packet")
+            val oldPos = provider.pos
             val pos = buf.readBlockPos()
 
             if (!TeleportUtils.serverTeleport(provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE)) {
                 ID_S2C_TELEPORT_REJECT.send(ctx.connection, this)
+            } else {
+                provider.world.playSound(
+                    null, oldPos.x, oldPos.y, oldPos.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS,
+                    1.0F, 1.0F
+                )
+                provider.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F)
+                provider.world.sendEntityStatus(provider, EntityStatuses.ADD_PORTAL_PARTICLES)
             }
         }
 
@@ -85,6 +98,16 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
         ID_C2S_TELEPORT_TO.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
             ctx.assertClientSide()
             buf.writeBlockPos(resultPos)
+        }
+    }
+
+    override fun clientTick() {
+        if (isActuallyEnabled()) {
+            provider.world.addParticle(
+                ParticleTypes.PORTAL, provider.getParticleX(0.5), provider.getRandomBodyY(),
+                provider.getParticleZ(0.5), (provider.random.nextDouble() - 0.5) * 2.0,
+                -provider.random.nextDouble(), (provider.random.nextDouble() - 0.5) * 2.0
+            )
         }
     }
 

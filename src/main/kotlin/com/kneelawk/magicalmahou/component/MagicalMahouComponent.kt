@@ -360,11 +360,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
      * Causes the client to display the particle effects associated with a transformation.
      */
     private fun displayTransform() {
-        val x = provider.x
-        val y = provider.y + provider.height / 2.0
-        val z = provider.z
-
-        MMParticlesClient.addTransformationParticles(x, y, z, 0.5, 3, transformationColor)
+        MMParticlesClient.addTransformationParticles(provider, 0.5, 3, transformationColor)
     }
 
 
