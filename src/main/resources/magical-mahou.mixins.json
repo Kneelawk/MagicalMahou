@@ -3,7 +3,8 @@
   "package": "com.kneelawk.magicalmahou.mixin.impl",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "PlayerEntityMixin"
+    "PlayerEntityMixin",
+    "TameableEntityMixin"
   ],
   "client": [
     "AbstractClientPlayerEntityMixin",

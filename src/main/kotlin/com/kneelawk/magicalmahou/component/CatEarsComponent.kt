@@ -23,8 +23,8 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
     companion object {
         val NAME = tt("component", "cat_ears")
 
-        private const val DEFAULT_HAS = true
-        private const val DEFAULT_ENABLED = true
+        private const val DEFAULT_HAS = false
+        private const val DEFAULT_ENABLED = false
 
         // No NET_ID stuff here because, until cat ears can have custom skins, Cardinal Component's synchronization
         // system will do just fine.
@@ -45,6 +45,14 @@ class CatEarsComponent(override val provider: PlayerEntity) : ProvidingPlayerCom
     fun serverSetEnabled(newEnabled: Boolean) {
         if (has) {
             enabled = newEnabled
+            key.sync(provider)
+        }
+    }
+
+    override fun serverGiveAbility() {
+        if (MMComponents.isMagical(provider)) {
+            has = true
+            enabled = true
             key.sync(provider)
         }
     }

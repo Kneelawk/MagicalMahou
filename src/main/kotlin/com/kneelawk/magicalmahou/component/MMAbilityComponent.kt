@@ -11,4 +11,6 @@ interface MMAbilityComponent<C : Component> : Component {
     val key: ComponentKey<C>
 
     fun getPlayerHasComponent(): Boolean
+
+    fun serverGiveAbility()
 }

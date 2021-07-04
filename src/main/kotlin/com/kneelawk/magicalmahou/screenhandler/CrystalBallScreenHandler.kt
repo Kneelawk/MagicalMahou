@@ -145,6 +145,10 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
             abilityButtonsPanel.add(page, buttonPanel)
         }
 
+        if (abilitiesCount == 0) {
+            abilityButtonsPanel.add(0, WGridPanel())
+        }
+
         abilityPanel.add(abilityButtonsPanel, 0, 3, ABILITIES_PER_PAGE, 1)
 
         val abilityPageBackButton = WScalableButton(LiteralText("<"))

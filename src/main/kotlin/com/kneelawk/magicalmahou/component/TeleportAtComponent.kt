@@ -38,8 +38,8 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
     companion object {
         val NAME = tt("component", "teleport_at")
 
-        private const val DEFAULT_HAS = true
-        private const val DEFAULT_ENABLED = true
+        private const val DEFAULT_HAS = false
+        private const val DEFAULT_ENABLED = false
         private const val TELEPORT_COOLDOWN = 10
         private const val MAX_TELEPORT_DISTANCE = 128.0
 
@@ -112,6 +112,14 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
     fun serverSetEnabled(newEnabled: Boolean) {
         if (has) {
             enabled = newEnabled
+            key.sync(provider)
+        }
+    }
+
+    override fun serverGiveAbility() {
+        if (MMComponents.isMagical(provider)) {
+            has = true
+            enabled = true
             key.sync(provider)
         }
     }

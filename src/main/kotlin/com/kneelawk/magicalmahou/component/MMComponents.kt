@@ -5,6 +5,7 @@ import dev.onyxstudios.cca.api.v3.component.ComponentKey
 import dev.onyxstudios.cca.api.v3.component.ComponentRegistry
 import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry
 import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy
+import net.minecraft.entity.player.PlayerEntity
 
 object MMComponents {
     val GENERAL: ComponentKey<MagicalMahouComponent> =
@@ -37,5 +38,9 @@ object MMComponents {
         registerAbilityComponent(CAT_EARS)
         registerAbilityComponent(TELEPORT_AT)
         registerAbilityComponent(LONG_FALL)
+    }
+
+    fun isMagical(player: PlayerEntity): Boolean {
+        return GENERAL[player].isMagical
     }
 }
