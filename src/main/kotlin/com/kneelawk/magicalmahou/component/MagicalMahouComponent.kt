@@ -265,7 +265,6 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
 
     /* Component State */
 
-    private var isTransformed = false
     var isMagical = false
         private set(value) {
             field = value
@@ -275,6 +274,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                 it.s2cReceiveIsMagicalChange(value)
             }
         }
+    private var isTransformed = false
 
     // On the server, we always start by assuming that the player's skin is invalid. Then, if we load the player's skin
     // from a file, we can say that the skin is now valid.
@@ -480,6 +480,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         //  have a gui open and still end up needing notifications)
 
         // data
+        isMagical = other.isMagical
         isTransformed = other.isTransformed
         needsC2SSkinSync = other.needsC2SSkinSync
         playerSkinModel = other.playerSkinModel
