@@ -11,11 +11,12 @@ import com.kneelawk.magicalmahou.net.MMNetIds
 import com.kneelawk.magicalmahou.net.setC2SReceiver
 import com.kneelawk.magicalmahou.net.setS2CReceiver
 import com.kneelawk.magicalmahou.screenhandler.TeleportAtScreenHandler
+import com.kneelawk.magicalmahou.util.RaycastUtils
+import com.kneelawk.magicalmahou.util.TeleportUtils
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.nbt.NbtCompound
@@ -24,8 +25,6 @@ import net.minecraft.screen.NamedScreenHandlerFactory
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
-import net.minecraft.util.math.Vec3d
-import net.minecraft.world.RaycastContext
 
 class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayerComponent<TeleportAtComponent>,
     CopyableComponent<TeleportAtComponent>, MMAbilityComponent<TeleportAtComponent>, AutoSyncedComponent,
@@ -43,30 +42,11 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
         private val ID_C2S_TELEPORT_TO = NET_PARENT.idData("C2S_TELEPORT_TO").setC2SReceiver { buf, ctx ->
             MMLog.debug("Received C2S_TELEPORT_TO packet")
-            val oldPos = provider.blockPos
             val pos = buf.readBlockPos()
 
-            println("Old pos: $oldPos")
-            println("New pos: $pos")
-
-            if (oldPos.isWithinDistance(pos, MAX_TELEPORT_DISTANCE)) {
-                println("Setting position")
-                provider.setPosition(Vec3d.ofBottomCenter(pos))
-                println("Player pos: ${provider.blockPos}")
-                ID_S2C_TELEPORT_TO.send(ctx.connection, this) { _, buf, ctx ->
-                    ctx.assertServerSide()
-                    buf.writeBlockPos(pos)
-                }
-            } else {
-                println("Teleport reject")
+            if (!TeleportUtils.serverTeleport(provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE)) {
                 ID_S2C_TELEPORT_REJECT.send(ctx.connection, this)
             }
-        }
-
-        private val ID_S2C_TELEPORT_TO = NET_PARENT.idData("S2C_TELEPORT_TO").setS2CReceiver { buf, _ ->
-            MMLog.debug("Received S2C_TELEPORT_TO packet")
-            val pos = buf.readBlockPos()
-            provider.setPosition(Vec3d.ofBottomCenter(pos))
         }
 
         private val ID_S2C_TELEPORT_REJECT = NET_PARENT.idSignal("S2C_TELEPORT_REJECT").setS2CReceiver {
@@ -95,27 +75,10 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
     @Environment(EnvType.CLIENT)
     fun clientTeleportAt() {
-        val mc = MinecraftClient.getInstance()
-        val raycastEntity = mc.cameraEntity ?: return
-        val tickDelta = mc.tickDelta
-        val direction = raycastEntity.getRotationVec(tickDelta)
-        val start = raycastEntity.getCameraPosVec(tickDelta)
-        val end = start.add(direction.multiply(MAX_TELEPORT_DISTANCE))
+        val resultPos = RaycastUtils.clientRaycast(MAX_TELEPORT_DISTANCE)
 
-        println("Start: $start")
-        println("End: $end")
-
-        val raycast = provider.world.raycast(
-            RaycastContext(
-                start, end, RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.ANY, raycastEntity
-            )
-        )
-        val resultPos = raycast.blockPos.offset(raycast.side)
-
-        println("Result pos: $resultPos")
-
-        if (!provider.world.isAir(resultPos) || !provider.world.isAir(resultPos.up())) {
-            println("Result pos is not air!")
+        if (resultPos == null) {
+            provider.sendMessage(tt("message", "teleport_at.reject"), true)
             return
         }
 
