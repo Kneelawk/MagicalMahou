@@ -15,4 +15,5 @@ object MMIcons {
 
     val CAT_EARS_ICON = EnhancedTextureIcon(id("textures/gui/cat_ears_icon.png"), 16, 16)
     val TELEPORTATION_RINGS_ICON = EnhancedTextureIcon(id("textures/gui/teleport_at_icon.png"), 16, 16)
+    val LONG_FALL_ICON = EnhancedTextureIcon(id("textures/gui/long_fall_icon.png"), 16, 16)
 }

@@ -11,5 +11,6 @@ object MMScreens {
         ScreenRegistry.register(MMScreenHandlers.CRYSTAL_BALL, ::CrystalBallScreen)
         ScreenRegistry.register(MMScreenHandlers.CAT_EARS, ::CatEarsScreen)
         ScreenRegistry.register(MMScreenHandlers.TELEPORT_AT, ::TeleportAtScreen)
+        ScreenRegistry.register(MMScreenHandlers.LONG_FALL, ::LongFallScreen)
     }
 }

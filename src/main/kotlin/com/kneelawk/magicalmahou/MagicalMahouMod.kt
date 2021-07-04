@@ -10,4 +10,5 @@ fun init() {
     MMScreenHandlers.init()
     MMParticles.init()
     MMComponents.mmInit()
+    MMAbilityIntegration.init()
 }

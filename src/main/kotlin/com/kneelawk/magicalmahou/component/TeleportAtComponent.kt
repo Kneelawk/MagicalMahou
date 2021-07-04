@@ -47,18 +47,24 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
         private val ID_C2S_TELEPORT_TO = NET_PARENT.idData("C2S_TELEPORT_TO").setC2SReceiver { buf, ctx ->
             MMLog.debug("Received C2S_TELEPORT_TO packet")
-            val oldPos = provider.pos
-            val pos = buf.readBlockPos()
+            if (isActuallyEnabled()) {
+                val oldPos = provider.pos
+                val pos = buf.readBlockPos()
 
-            if (!TeleportUtils.serverTeleport(provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE)) {
-                ID_S2C_TELEPORT_REJECT.send(ctx.connection, this)
+                if (TeleportUtils.serverTeleport(provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE)) {
+                    provider.world.playSound(
+                        null, oldPos.x, oldPos.y, oldPos.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS,
+                        1.0F, 1.0F
+                    )
+                    provider.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F)
+                    provider.world.sendEntityStatus(provider, EntityStatuses.ADD_PORTAL_PARTICLES)
+                } else {
+                    ID_S2C_TELEPORT_REJECT.send(ctx.connection, this)
+                }
             } else {
-                provider.world.playSound(
-                    null, oldPos.x, oldPos.y, oldPos.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS,
-                    1.0F, 1.0F
-                )
-                provider.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F)
-                provider.world.sendEntityStatus(provider, EntityStatuses.ADD_PORTAL_PARTICLES)
+                // make sure the client knows that we're not enabled
+                key.sync(provider)
+                ID_S2C_TELEPORT_REJECT.send(ctx.connection, this)
             }
         }
 

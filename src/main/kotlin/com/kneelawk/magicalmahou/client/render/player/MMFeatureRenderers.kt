@@ -9,6 +9,7 @@ object MMFeatureRenderers {
             MMLog.info("Adding cat ears...")
             consumer.accept(CatEarsFeatureRenderer(renderer))
             consumer.accept(TeleportAtFeatureRenderer(renderer))
+            consumer.accept(LongFallFeatureRenderer(renderer))
         }
     }
 }

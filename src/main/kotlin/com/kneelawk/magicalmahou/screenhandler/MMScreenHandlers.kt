@@ -16,11 +16,13 @@ object MMScreenHandlers {
     lateinit var CRYSTAL_BALL: ScreenHandlerType<CrystalBallScreenHandler>
     lateinit var CAT_EARS: ScreenHandlerType<CatEarsScreenHandler>
     lateinit var TELEPORT_AT: ScreenHandlerType<TeleportAtScreenHandler>
+    lateinit var LONG_FALL: ScreenHandlerType<LongFallScreenHandler>
 
     fun init() {
         CRYSTAL_BALL = ScreenHandlerRegistry.registerSimple(id("crystal_ball"), ::CrystalBallScreenHandler)
         CAT_EARS = ScreenHandlerRegistry.registerSimple(id("cat_ears"), ::CatEarsScreenHandler)
         TELEPORT_AT = ScreenHandlerRegistry.registerSimple(id("teleport_at"), ::TeleportAtScreenHandler)
+        LONG_FALL = ScreenHandlerRegistry.registerSimple(id("long_fall"), ::LongFallScreenHandler)
     }
 
     fun createCrystalBallScreenHandlerFactory(): NamedScreenHandlerFactory {

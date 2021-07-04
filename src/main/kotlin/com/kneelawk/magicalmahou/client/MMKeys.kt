@@ -60,7 +60,6 @@ object MMKeys {
                     val teleportAt = MMComponents.TELEPORT_AT[player]
 
                     if (teleportAt.isActuallyEnabled()) {
-                        println("Attempting teleport at")
                         teleportAt.clientTeleportAt()
                     }
                 }
