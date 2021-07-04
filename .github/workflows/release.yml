@@ -25,6 +25,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: build/libs/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: curseforge and modrinth release
         run: ./gradlew curseforge publishModrinth
         env:
