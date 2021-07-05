@@ -15,7 +15,7 @@ object MMAbilityIntegration {
         PlayerEntityEvents.TAME_ENTITY.register { player, tamed ->
             if (tamed is CatEntity) {
                 val component = MMComponents.CAT_EARS[player]
-                if (!component.getPlayerHasComponent()) {
+                if (MMComponents.isMagical(player) && !component.getPlayerHasComponent()) {
                     component.serverGiveAbility()
                     player.sendMessage(tt("message", "accept.cat_ears"), false)
                 }
