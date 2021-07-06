@@ -28,8 +28,10 @@
   "message.magical-mahou.accept.long_fall": "You have accepted the Long Fall contract.",
   "message.magical-mahou.accept.teleport_at": "You have accepted the Teleport At contract.",
   "message.magical-mahou.bad-image": "Error opening image: %s",
+  "message.magical-mahou.general.reject_transform.normal": "Unable to transform",
+  "message.magical-mahou.general.reject_transform.throttle": "Transforming too fast",
   "message.magical-mahou.player-skin-wrong-dimensions": "Image had wrong dimensions. Should have been (64x64) or (64x32) but was (%dx%d).",
   "message.magical-mahou.teleport_at.reject.normal": "Unable to teleport",
-  "message.magical-mahou.teleport_at.reject.throttle": "Too many teleports",
+  "message.magical-mahou.teleport_at.reject.throttle": "Teleporting too fast",
   "message.magical-mahou.wrong-dimensions": "Image had wrong dimensions. Should have been (%dx%d) but was (%dx%d)."
 }

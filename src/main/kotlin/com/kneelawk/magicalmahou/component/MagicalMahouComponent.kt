@@ -3,6 +3,7 @@ package com.kneelawk.magicalmahou.component
 import alexiil.mc.lib.net.ActiveConnection
 import alexiil.mc.lib.net.impl.CoreMinecraftNetUtil
 import com.kneelawk.magicalmahou.MMConstants.str
+import com.kneelawk.magicalmahou.MMConstants.tt
 import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.client.particle.MMParticlesClient
 import com.kneelawk.magicalmahou.component.ComponentHelper.withScreenHandler
@@ -63,6 +64,11 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     companion object {
         private val NET_PARENT =
             MMNetIds.PLAYER_COMPONENT_NET_ID.subType(MagicalMahouComponent::class.java, str("component_general"))
+
+        /**
+         * The minimum number of world ticks between transformations. (20 ticks = 1 second)
+         */
+        private const val TRANSFORM_COOLDOWN = 20
 
 
         /* Sync Packets */
@@ -152,6 +158,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                     // Send skin to other players
                     syncToEveryone(exceptSelf = true, displayTransform = false)
                 } catch (e: InvalidSkinException) {
+                    buf.clear()
                     when (e) {
                         is InvalidSkinException.BadImage -> MMLog.warn(
                             "Error receiving C2S_PLAYER_SKIN_SYNC packet", e
@@ -163,6 +170,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                     }
                 }
             } else {
+                buf.clear()
                 ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
             }
         }, { buf, _ ->
@@ -179,14 +187,36 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         private val ID_C2S_REQUEST_TRANSFORM = NET_PARENT.idData("C2S_REQUEST_TRANSFORM").setC2SReceiver { buf, ctx ->
             MMLog.debug("Received C2S_REQUEST_TRANSFORM packet")
             if (isMagical) {
-                // TODO: packet throttling
-                isTransformed = buf.readBoolean()
+                // perform packet throttling
+                val now = provider.world.time
+                if (now - lastTransform > TRANSFORM_COOLDOWN) {
+                    lastTransform = now
 
-                // Send the transform and sync to all clients
-                syncToEveryone(exceptSelf = false, displayTransform = true)
+                    isTransformed = buf.readBoolean()
+
+                    // Send the transform and sync to all clients
+                    syncToEveryone(exceptSelf = false, displayTransform = true)
+                } else {
+                    buf.clear()
+                    ID_S2C_REJECT_TRANSFORM.send(ctx.connection, this) { _, buf1, ctx1 ->
+                        ctx1.assertServerSide()
+                        buf1.writeByte(TransformRejectionType.THROTTLE.id)
+                    }
+                }
             } else {
+                buf.clear()
                 ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
             }
+        }
+
+        /**
+         * Sent by the server when the server rejects a client's transform request.
+         */
+        private val ID_S2C_REJECT_TRANSFORM = NET_PARENT.idData("S2C_REJECT_TRANSFORM").setS2CReceiver { buf, _ ->
+            MMLog.debug("Received S2C_REJECT_TRANSFORM packet")
+            provider.sendMessage(
+                tt("message", "general.reject_transform.${TransformRejectionType.byId(buf.readByte().toInt()).text}"), true
+            )
         }
 
         /**
@@ -202,6 +232,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                         ID_S2C_SET_PLAYER_SKIN_MODEL.send(conn, this)
                     }
                 } else {
+                    buf.clear()
                     ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
                 }
             }
@@ -231,6 +262,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
                         ID_S2C_SET_TRANSFORMATION_COLOR.send(conn, this)
                     }
                 } else {
+                    buf.clear()
                     ID_S2C_NON_MAGICAL_SYNC.send(ctx.connection, this)
                 }
             }
@@ -257,6 +289,7 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
         MMLog.debug("Setting player ${provider.gameProfile.name} id: ${provider.uuid}")
         provider.uuid
     }
+    private var lastTransform = provider.world.time
 
     /* Initialization Tracking */
 
@@ -588,5 +621,22 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
             buf.writeByte(playerSkinModel.id)
             buf.writeInt(transformationColor)
         }
+    }
+
+    private enum class TransformRejectionType(val text: String) {
+        NORMAL("normal"),
+        THROTTLE("throttle");
+
+        companion object {
+            private val VALUES = values()
+            private const val MIN_VALUE = 0
+            private val MAX_VALUE = VALUES.size - 1
+
+            fun byId(id: Int): TransformRejectionType {
+                return VALUES[id.coerceIn(MIN_VALUE, MAX_VALUE)]
+            }
+        }
+
+        val id = ordinal
     }
 }
