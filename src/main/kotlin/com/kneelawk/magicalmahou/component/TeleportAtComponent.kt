@@ -11,7 +11,7 @@ import com.kneelawk.magicalmahou.net.MMNetIds
 import com.kneelawk.magicalmahou.net.setC2SReceiver
 import com.kneelawk.magicalmahou.net.setS2CReceiver
 import com.kneelawk.magicalmahou.screenhandler.TeleportAtScreenHandler
-import com.kneelawk.magicalmahou.util.RaycastUtils
+import com.kneelawk.magicalmahou.util.SyncedRaycast
 import com.kneelawk.magicalmahou.util.TeleportUtils
 import dev.onyxstudios.cca.api.v3.component.CopyableComponent
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent
@@ -49,15 +49,20 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
         private val ID_C2S_TELEPORT_TO = NET_PARENT.idData("C2S_TELEPORT_TO").setC2SReceiver { buf, ctx ->
             MMLog.debug("Received C2S_TELEPORT_TO packet")
 
-            val oldPos = provider.pos
-            val pos = buf.readBlockPos()
-
             val now = provider.world.time
             if (isActuallyEnabled()) {
                 if (now - lastTeleport > TELEPORT_COOLDOWN) {
                     lastTeleport = now
 
-                    if (TeleportUtils.serverTeleport(provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE)) {
+                    val oldPos = provider.pos
+
+                    val raycast = SyncedRaycast.serverReadRaycast(buf)
+                    val pos = raycast.raycast(provider, MAX_TELEPORT_DISTANCE)
+
+                    if (pos != null && TeleportUtils.serverTeleport(
+                            provider as ServerPlayerEntity, pos, MAX_TELEPORT_DISTANCE
+                        )
+                    ) {
                         provider.world.playSound(
                             null, oldPos.x, oldPos.y, oldPos.z, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
                             SoundCategory.PLAYERS,
@@ -72,12 +77,14 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
                         }
                     }
                 } else {
+                    buf.clear()
                     ID_S2C_TELEPORT_REJECT.send(ctx.connection, this) { _, s2cBuf, s2cCtx ->
                         s2cCtx.assertServerSide()
                         s2cBuf.writeByte(RejectionType.THROTTLE.id)
                     }
                 }
             } else {
+                buf.clear()
                 // make sure the client knows that we're not enabled
                 key.sync(provider)
                 ID_S2C_TELEPORT_REJECT.send(ctx.connection, this) { _, s2cBuf, s2cCtx ->
@@ -126,16 +133,16 @@ class TeleportAtComponent(override val provider: PlayerEntity) : ProvidingPlayer
 
     @Environment(EnvType.CLIENT)
     fun clientTeleportAt() {
-        val resultPos = RaycastUtils.clientRaycast(MAX_TELEPORT_DISTANCE)
+        val raycast = SyncedRaycast.clientStartRaycast()
 
-        if (resultPos == null) {
+        if (raycast == null) {
             provider.sendMessage(tt("message", "teleport_at.reject.${RejectionType.NORMAL.errorName}"), true)
             return
         }
 
         ID_C2S_TELEPORT_TO.send(CoreMinecraftNetUtil.getClientConnection(), this) { _, buf, ctx ->
             ctx.assertClientSide()
-            buf.writeBlockPos(resultPos)
+            raycast.write(buf)
         }
     }
 

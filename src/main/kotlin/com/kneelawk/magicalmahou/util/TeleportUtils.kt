@@ -27,6 +27,9 @@ object TeleportUtils {
                 posD.x, posD.y, posD.z, MathHelper.wrapDegrees(player.yaw), MathHelper.wrapDegrees(player.pitch)
             )
 
+            // Update last tick pos so we don't get warnings about it
+            player.networkHandler.syncWithPlayerPosition()
+
             true
         } else {
             false
