@@ -1,4 +1,5 @@
 import com.modrinth.minotaur.TaskModrinthUpload
+import de.undercouch.gradle.tasks.download.Download
 
 plugins {
     id 'fabric-loom'
@@ -6,6 +7,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'com.matthewprenger.cursegradle'
     id 'com.modrinth.minotaur'
+    id 'de.undercouch.download'
 }
 
 sourceCompatibility = JavaVersion.VERSION_16
@@ -69,6 +71,14 @@ repositories {
         name = "Haven-King"
         url = "https://hephaestus.dev/release"
     }
+
+    // Emotecraft repositories
+    if (Boolean.parseBoolean(System.getProperty("com.kneelawk.magicalmahou.useemotecraft", "false"))) {
+        maven {
+            url "http://kosmx.ddns.net/maven/"
+            allowInsecureProtocol = true //No HTTPS
+        }
+    }
 }
 
 dependencies {
@@ -120,6 +130,8 @@ dependencies {
 
     // Runtime dependencies (compatibility testing mostly)
 
+    def modsDir = layout.projectDirectory.dir("run/mods")
+
     if (isTerraformersMCMavenUp()) {
         modRuntime("com.terraformersmc:modmenu:${project.modmenu_version}") {
             exclude group: "net.fabricmc.fabric-api"
@@ -134,6 +146,21 @@ dependencies {
         modRuntime("grondag:bitraster:${project.bitraster_version}") {
             exclude group: "net.fabricmc.fabric-api"
         }
+    }
+
+    // Only use BendyLib and Emotecraft if the com.kneelawk.magicalmahou.useemotecraft property is set
+    def emotecraftFile = modsDir.file("emotecraft-for-MC1.17-${project.emotecraft_version}-fabric.jar")
+    if (Boolean.parseBoolean(System.getProperty("com.kneelawk.magicalmahou.useemotecraft", "false"))) {
+        modRuntime("io.github.kosmx:bendy-lib:${project.bendylib_version}") {
+            exclude group: "net.fabricmc.fabric-api"
+        }
+        download {
+            dest emotecraftFile
+            src "https://api.modrinth.com/maven/maven/modrinth/emotecraft/${project.emotecraft_version}/emotecraft-for-MC1.17-${project.emotecraft_version}-fabric.jar"
+            overwrite false
+        }
+    } else {
+        emotecraftFile.asFile.delete()
     }
 
     modRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
@@ -273,4 +300,58 @@ static boolean isTerraformersMCMavenUp() {
         println("Error connecting to TerraformersMC maven", e)
     }
     return false
+}
+
+/*
+ * Cache system: copied from https://github.com/michel-kraemer/gradle-download-task/issues/89#issuecomment-357546805
+ */
+
+def urlToCachePath(url) {
+    def domainStart = url.indexOf("//")
+    if (domainStart == -1)
+        domainStart = 0
+    else
+        domainStart += 2
+    def urlWithoutProtocol = url.substring(domainStart)
+    def restStart = urlWithoutProtocol.indexOf("/")
+    if (restStart == -1)
+        restStart = urlWithoutProtocol.length
+    def domain = urlWithoutProtocol.substring(0, restStart)
+    def queryStart = urlWithoutProtocol.indexOf('?')
+    if (queryStart == -1)
+        queryStart = urlWithoutProtocol.length()
+    def rest = urlWithoutProtocol.substring(restStart, queryStart)
+    return System.getProperty("user.home") +
+            "/.gradle/caches/modules-2/files-2.1/de.undercouch/cache/" +
+            domain.tokenize('.').reverse().join('/') + rest
+}
+
+def urlToCachedFile(url) {
+    def fileStart = url.lastIndexOf("/") + 1
+    def fileEnd = url.indexOf("?")
+    if (fileEnd == -1)
+        fileEnd = url.length()
+    def file = url.substring(fileStart, fileEnd)
+    return file
+}
+
+def createCacheTask(url) {
+    task "cacheFile_${url.hashCode()}"(type: Download) {
+        def destPath = urlToCachePath(url)
+        src url
+        dest destPath
+        overwrite false
+    }
+}
+
+def createDownloadTask(url, dest) {
+    createCacheTask(url)
+    task "download_${url.hashCode()}_${dest.hashCode()}"(type: Copy) {
+        dependsOn "cacheFile_${url.hashCode()}"
+        def destPath = urlToCachePath(url)
+        from(destPath) {
+            include urlToCachedFile(url)
+        }
+        into dest
+    }
 }
