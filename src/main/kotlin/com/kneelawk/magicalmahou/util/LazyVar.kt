@@ -3,8 +3,9 @@ package com.kneelawk.magicalmahou.util
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-class LazyVar<T>(initializer: () -> T, private val onSet: ((T) -> Unit)? = null) : ReadWriteProperty<Any?, T> {
+class LazyVar<T>(initializer: () -> T) : ReadWriteProperty<Any?, T> {
     private var initializer: (() -> T)? = initializer
+    private var onSet: ((T) -> Unit)? = null
     private var value: Any? = Uninitialized
 
     @Suppress("UNCHECKED_CAST")
@@ -32,7 +33,12 @@ class LazyVar<T>(initializer: () -> T, private val onSet: ((T) -> Unit)? = null)
         }
     }
 
+    infix fun onSet(onSet: (T) -> Unit): LazyVar<T> {
+        this.onSet = onSet
+        return this
+    }
+
     private object Uninitialized
 }
 
-fun <T> lazyVar(initializer: () -> T, onSet: ((T) -> Unit)? = null): LazyVar<T> = LazyVar(initializer, onSet)
+fun <T> lazyVar(initializer: () -> T): LazyVar<T> = LazyVar(initializer)

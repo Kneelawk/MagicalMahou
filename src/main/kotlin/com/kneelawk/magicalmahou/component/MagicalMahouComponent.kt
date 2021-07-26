@@ -313,16 +313,16 @@ class MagicalMahouComponent(override val provider: PlayerEntity) : ProvidingPlay
     // from a file, we can say that the skin is now valid.
     private var needsC2SSkinSync = !provider.world.isClient
 
-    var playerSkinModel by lazyVar({
+    var playerSkinModel by lazyVar {
         // We can't do this in the constructor because the network manager wouldn't have been initialized by then and we
         // can't do this in the `tick()` function because the player skin might not have been loaded by then.
         MMProxy.getProxy().getDefaultPlayerSkinModel(provider)
-    }, { value ->
+    } onSet { value ->
         // update ui
         withScreenHandler<CrystalBallScreenHandler>(provider) {
             it.s2cReceiveSkinModelChange(value)
         }
-    })
+    }
         private set
 
     var transformationColor = 0xFFFFFFFF.toInt()
