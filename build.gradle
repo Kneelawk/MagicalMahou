@@ -186,8 +186,10 @@ jar {
     }
 }
 
-runClient {
-    args("--width", "1280", "--height", "720")
+afterEvaluate {
+    runClient {
+        args("--width", "1280", "--height", "720")
+    }
 }
 
 // configure the maven publication
