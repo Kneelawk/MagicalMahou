@@ -1,18 +1,21 @@
 package com.kneelawk.magicalmahou.client.skin
 
 import com.kneelawk.magicalmahou.MMConstants.id
+import com.kneelawk.magicalmahou.MMLog
+import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
 import com.kneelawk.magicalmahou.skin.InvalidSkinException
 import com.kneelawk.magicalmahou.skin.SkinManager
-import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
-import net.minecraft.client.texture.NativeImageBackedTexture
 import net.minecraft.util.Identifier
 import org.lwjgl.system.MemoryUtil
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ClientSkinManager(
     override val imageWidth: Int, override val imageHeight: Int, private val skinPath: String,
@@ -22,6 +25,27 @@ class ClientSkinManager(
     private val isSkinSized = imageWidth == 64 && imageHeight == 64
     private val usePlayerSkin = tryPlayerSkin && isSkinSized
     private val skinMap = hashMapOf<UUID, Skin>()
+    private var toRemove = AtomicBoolean(false)
+
+    init {
+        ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
+            toRemove.set(true)
+        }
+        ClientTickEvents.END_CLIENT_TICK.register { mc ->
+            if (toRemove.get()) {
+                toRemove.set(false)
+
+                MMLog.debug("Clearing client skin map...")
+
+                for (skin in skinMap.values) {
+                    mc.textureManager.destroyTexture(skin.id)
+                    skin.texture.close()
+                }
+
+                skinMap.clear()
+            }
+        }
+    }
 
     private fun createId(playerId: UUID): Identifier {
         return id("$skinPath/$playerId")
@@ -45,7 +69,7 @@ class ClientSkinManager(
             newImage.loadFromTextureImage(0, false)
         }
 
-        val newTexture = NativeImageBackedTexture(newImage)
+        val newTexture = NativeImageBackedPlayerSkinTexture(newImage, playerId)
 
         val id = createId(playerId)
         mc.textureManager.registerTexture(id, newTexture)
@@ -54,7 +78,7 @@ class ClientSkinManager(
     }
 
     private fun getOrCreate(playerId: UUID): Skin {
-        return skinMap.getOrElse(playerId) { createSkin(playerId) }
+        return skinMap.getOrPut(playerId) { createSkin(playerId) }
     }
 
     fun getIdentifier(playerId: UUID): Identifier {
@@ -83,13 +107,15 @@ class ClientSkinManager(
 
         if (skinMap.containsKey(playerId)) {
             val skin = skinMap[playerId]!!
+            println("Updating existing skin texture")
             skin.texture.image = newImage
             skin.texture.upload()
         } else {
-            val texture = NativeImageBackedTexture(newImage)
+            val texture = NativeImageBackedPlayerSkinTexture(newImage, playerId)
             val id = createId(playerId)
 
             MinecraftClient.getInstance().textureManager.registerTexture(id, texture)
+            println("Putting new skin texture")
             skinMap[playerId] = Skin(id, texture)
         }
     }
@@ -140,5 +166,5 @@ class ClientSkinManager(
         getOrCreate(playerId).texture.upload()
     }
 
-    private data class Skin(val id: Identifier, val texture: NativeImageBackedTexture)
+    private data class Skin(val id: Identifier, val texture: NativeImageBackedPlayerSkinTexture)
 }

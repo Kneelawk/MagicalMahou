@@ -26,4 +26,8 @@ object MMLog {
     fun warn(msg: Any, t: Throwable) {
         log.warn(msg, t)
     }
+
+    fun warn(msg: String, obj: Int) {
+        log.warn(msg, obj)
+    }
 }
