@@ -21,14 +21,14 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build
-      - name: github release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: build/libs/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: curseforge and modrinth release
         run: ./gradlew curseforge publishModrinth
         env:
           CURSE_API_KEY: ${{ secrets.CURSE_API_KEY }}
           MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
+      - name: github release
+        uses: softprops/action-gh-release@59c3b4891632ff9a897f99a91d7bc557467a3a22
+        with:
+          files: build/libs/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
