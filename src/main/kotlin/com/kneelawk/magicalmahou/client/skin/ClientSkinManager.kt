@@ -1,7 +1,6 @@
 package com.kneelawk.magicalmahou.client.skin
 
 import com.kneelawk.magicalmahou.MMConstants.id
-import com.kneelawk.magicalmahou.MMLog
 import com.kneelawk.magicalmahou.mixin.api.PlayerEntityRendererEvents
 import com.kneelawk.magicalmahou.skin.InvalidSkinException
 import com.kneelawk.magicalmahou.skin.SkinManager
@@ -20,38 +19,38 @@ import java.util.concurrent.atomic.AtomicBoolean
 class ClientSkinManager(
     override val imageWidth: Int, override val imageHeight: Int, private val skinPath: String,
     tryPlayerSkin: Boolean
-) :
-    SkinManager {
+) : SkinManager {
     private val isSkinSized = imageWidth == 64 && imageHeight == 64
     private val usePlayerSkin = tryPlayerSkin && isSkinSized
     private val skinMap = hashMapOf<UUID, Skin>()
+    private val validSkins = hashSetOf<UUID>()
     private var toRemove = AtomicBoolean(false)
 
     init {
         ClientPlayConnectionEvents.DISCONNECT.register { _, _ ->
             toRemove.set(true)
         }
-        ClientTickEvents.END_CLIENT_TICK.register { mc ->
+        ClientTickEvents.END_CLIENT_TICK.register {
             if (toRemove.get()) {
                 toRemove.set(false)
 
-                MMLog.debug("Clearing client skin map...")
-
-                for (skin in skinMap.values) {
-                    mc.textureManager.destroyTexture(skin.id)
-                    skin.texture.close()
-                }
-
-                skinMap.clear()
+                validSkins.clear()
             }
         }
     }
 
+    /**
+     * Creates a texture identifier for a given player id.
+     */
     private fun createId(playerId: UUID): Identifier {
         return id("$skinPath/$playerId")
     }
 
-    private fun createSkin(playerId: UUID): Skin {
+    /**
+     * Creates a new native image. If this ClientSkinManager was created with usePlayerSkin == true, then the new native
+     * image will have the player skin.
+     */
+    private fun createNewImage(): NativeImage {
         val mc = MinecraftClient.getInstance()
         val newImage = NativeImage(NativeImage.Format.ABGR, imageWidth, imageHeight, !usePlayerSkin)
 
@@ -69,32 +68,48 @@ class ClientSkinManager(
             newImage.loadFromTextureImage(0, false)
         }
 
-        val newTexture = NativeImageBackedPlayerSkinTexture(newImage, playerId)
+        return newImage
+    }
 
+    /**
+     * Creates and registers a new skin texture for the given player id and with the given native image.
+     */
+    private fun createSkin(playerId: UUID, image: NativeImage): Skin {
+        val newTexture = NativeImageBackedPlayerSkinTexture(image, playerId)
         val id = createId(playerId)
-        mc.textureManager.registerTexture(id, newTexture)
+
+        MinecraftClient.getInstance().textureManager.registerTexture(id, newTexture)
 
         return Skin(id, newTexture)
     }
 
-    private fun getOrCreate(playerId: UUID): Skin {
-        return skinMap.getOrPut(playerId) { createSkin(playerId) }
-    }
+    /**
+     * Puts a native image into the skin map, marking the skin as valid.
+     *
+     * Note that this does not do any image size checks or conversions.
+     */
+    private fun unsafePutImage(playerId: UUID, newImage: NativeImage): Skin {
+        val skin: Skin
 
-    fun getIdentifier(playerId: UUID): Identifier {
-        return getOrCreate(playerId).id
-    }
-
-    override fun ensureExists(playerId: UUID): Boolean {
-        return if (skinMap.containsKey(playerId)) {
-            true
+        if (skinMap.containsKey(playerId)) {
+            skin = skinMap[playerId]!!
+            skin.texture.image = newImage
+            skin.texture.upload()
         } else {
-            skinMap[playerId] = createSkin(playerId)
-            false
+            skin = createSkin(playerId, newImage)
+            skinMap[playerId] = skin
         }
+
+        validSkins.add(playerId)
+
+        return skin
     }
 
-    private fun putNativeImage(playerId: UUID, nativeImage: NativeImage, convertLegacy: Boolean) {
+    /**
+     * Puts a native image into the skin map, marking the skin as valid, or throws an error if the image is the wrong
+     * size and could not be converted.
+     */
+    private fun putImage(playerId: UUID, nativeImage: NativeImage, convertLegacy: Boolean) {
         var newImage = nativeImage
 
         if (nativeImage.width != imageWidth) {
@@ -105,18 +120,30 @@ class ClientSkinManager(
             throw InvalidSkinException.WrongDimensions(imageWidth, imageHeight, nativeImage.width, nativeImage.height)
         }
 
-        if (skinMap.containsKey(playerId)) {
-            val skin = skinMap[playerId]!!
-            println("Updating existing skin texture")
-            skin.texture.image = newImage
-            skin.texture.upload()
-        } else {
-            val texture = NativeImageBackedPlayerSkinTexture(newImage, playerId)
-            val id = createId(playerId)
+        unsafePutImage(playerId, newImage)
+    }
 
-            MinecraftClient.getInstance().textureManager.registerTexture(id, texture)
-            println("Putting new skin texture")
-            skinMap[playerId] = Skin(id, texture)
+    /**
+     * Gets an existing skin from the skin map or creating/initializing one if needed.
+     */
+    private fun getOrCreate(playerId: UUID): Skin {
+        return if (skinMap.containsKey(playerId) && validSkins.contains(playerId)) {
+            skinMap[playerId]!!
+        } else {
+            unsafePutImage(playerId, createNewImage())
+        }
+    }
+
+    fun getIdentifier(playerId: UUID): Identifier {
+        return getOrCreate(playerId).id
+    }
+
+    override fun ensureExists(playerId: UUID): Boolean {
+        return if (skinMap.containsKey(playerId) && validSkins.contains(playerId)) {
+            true
+        } else {
+            unsafePutImage(playerId, createNewImage())
+            false
         }
     }
 
@@ -132,7 +159,7 @@ class ClientSkinManager(
             MemoryUtil.memFree(buf)
         }
 
-        putNativeImage(playerId, newImage, false)
+        putImage(playerId, newImage, false)
     }
 
     override fun loadPNGFromFile(path: Path, playerId: UUID, convertLegacy: Boolean) {
@@ -142,7 +169,7 @@ class ClientSkinManager(
         } catch (e: IOException) {
             throw InvalidSkinException.BadImage(e)
         }
-        putNativeImage(playerId, newImage, convertLegacy)
+        putImage(playerId, newImage, convertLegacy)
     }
 
     override fun storePNGToBytes(playerId: UUID): ByteArray {
