@@ -11,6 +11,7 @@
     "MatrixStackEntryAccessor",
     "MouseAccessor",
     "PlayerEntityRendererMixin",
+    "PlayerSkinTextureAccessor",
     "RenderLayerAccessor",
     "RenderPhaseAccessor"
   ],
