@@ -8,8 +8,10 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [ 16 ]
-        os: [ ubuntu-latest, windows-latest ]
+        java: [ 17, 18 ]
+        os:
+          - ubuntu-latest
+          #- windows-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository
