@@ -14,7 +14,7 @@ class TransformationParticle(
 
     init {
         maxAge = 8
-        field_28786 = 0.6f
+        scale = 0.6f
         setVelocity(velocityX, velocityY, velocityZ)
         setSpriteForAge(spriteProvider)
     }

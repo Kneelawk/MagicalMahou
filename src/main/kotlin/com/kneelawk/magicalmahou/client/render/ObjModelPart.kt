@@ -19,9 +19,9 @@ class ObjModelPart(private val parts: List<ObjPart>, private val children: Map<S
         ) {
             Myron.getModel(id)?.let { model ->
                 val newEntry = MatrixStackUtils.copyEntry(entry)
-                newEntry.model.multiplyByTranslation(pos.x, pos.y, pos.z)
-                newEntry.model.multiply(rot)
-                newEntry.normal.multiply(rot)
+                newEntry.positionMatrix.multiplyByTranslation(pos.x, pos.y, pos.z)
+                newEntry.positionMatrix.multiply(rot)
+                newEntry.normalMatrix.multiply(rot)
                 model.getQuads(null, null, Random()).forEach { quad ->
                     RenderUtils.quad(
                         vertexConsumer, newEntry, quad, red, green, blue, alpha, light, overlay

@@ -52,7 +52,7 @@ class ClientSkinManager(
      */
     private fun createNewImage(): NativeImage {
         val mc = MinecraftClient.getInstance()
-        val newImage = NativeImage(NativeImage.Format.ABGR, imageWidth, imageHeight, !usePlayerSkin)
+        val newImage = NativeImage(imageWidth, imageHeight, !usePlayerSkin)
 
         if (usePlayerSkin) {
             // Copy the image texture from the player's current skin
@@ -152,7 +152,7 @@ class ClientSkinManager(
         val newImage: NativeImage
         try {
             buf.put(0, data)
-            newImage = NativeImage.read(NativeImage.Format.ABGR, buf)
+            newImage = NativeImage.read(buf)
         } catch (e: IOException) {
             throw InvalidSkinException.BadImage(e)
         } finally {
@@ -177,16 +177,11 @@ class ClientSkinManager(
     }
 
     override fun storePNGToFile(path: Path, playerId: UUID) {
-        getOrCreate(playerId).texture.image!!.writeFile(path)
+        getOrCreate(playerId).texture.image!!.writeTo(path)
     }
 
     override fun setARGBPixel(playerId: UUID, x: Int, y: Int, argb: Int) {
-        val a = (argb shl 0x18) and 0xFF
-        val r = (argb shl 0x10) and 0xFF
-        val g = (argb shl 0x08) and 0xFF
-        val b = argb and 0xFF
-        val abgr = (a shr 0x18) or (b shr 0x10) or (g shr 0x08) or r
-        getOrCreate(playerId).texture.image!!.setPixelColor(x, y, abgr)
+        getOrCreate(playerId).texture.image!!.setColor(x, y, argb)
     }
 
     override fun update(playerId: UUID) {

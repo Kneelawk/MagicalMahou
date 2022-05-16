@@ -2,6 +2,7 @@ package com.kneelawk.magicalmahou.util
 
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ChunkTicketType
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.util.math.MathHelper
@@ -12,7 +13,7 @@ object TeleportUtils {
         val oldPos = player.blockPos
 
         return if (oldPos.isWithinDistance(pos, maxDistance)) {
-            val world = player.serverWorld
+            val world = player.world as ServerWorld
             val posD = Vec3d.ofBottomCenter(pos)
 
             val chunkPos = ChunkPos(pos)

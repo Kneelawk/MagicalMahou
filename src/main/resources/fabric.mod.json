@@ -43,8 +43,13 @@
   "depends": {
     "fabricloader": ">=0.9.2",
     "fabric": "*",
-    "fabric-language-kotlin": ">=1.6.1+kotlin.1.5.10",
-    "minecraft": "1.17.x"
+    "fabric-language-kotlin": ">=1.7.2+kotlin.1.6.20",
+    "satin": ">=1.7.0",
+    "cardinal-components-base": ">=4.1.0",
+    "cardinal-components-entity": ">=4.1.0",
+    "myron": ">=1.6.0",
+    "libnetworkstack": ">=0.6.0",
+    "minecraft": "1.18.x"
   },
   "suggests": {
     "flamingo": "*"

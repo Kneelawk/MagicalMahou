@@ -16,8 +16,8 @@ object RenderUtils {
         val vertexData = quad.vertexData
         val normInt = quad.face.vector
         val normal = Vec3f(normInt.x.toFloat(), normInt.y.toFloat(), normInt.z.toFloat())
-        val modelMatrix = matrixEntry.model
-        normal.transform(matrixEntry.normal)
+        val modelMatrix = matrixEntry.positionMatrix
+        normal.transform(matrixEntry.normalMatrix)
         val vertexCount = vertexData.size / 8
 
         MemoryStack.stackPush().use { memoryStack ->

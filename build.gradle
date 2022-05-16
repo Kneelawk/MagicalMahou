@@ -15,8 +15,8 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
-minecraft {
-    accessWidener = file("src/main/resources/magical-mahou.accesswidener")
+loom {
+    accessWidenerPath = file("src/main/resources/magical-mahou.accesswidener")
 }
 
 repositories {
@@ -99,12 +99,12 @@ dependencies {
     }
     include "io.github.ladysnake:satin:${project.satin_version}"
 
-    def cardinalComponents = ["cardinal-components-base", "cardinal-components-util", "cardinal-components-entity"]
+    def cardinalComponents = ["cardinal-components-base", "cardinal-components-entity"]
     cardinalComponents.each { component ->
-        modImplementation("io.github.onyxstudios.Cardinal-Components-API:${component}:${project.cardinal_version}") {
+        modImplementation("dev.onyxstudios.cardinal-components-api:${component}:${project.cardinal_version}") {
             exclude group: 'net.fabricmc.fabric-api'
         }
-        include "io.github.onyxstudios.Cardinal-Components-API:${component}:${project.cardinal_version}"
+        include "dev.onyxstudios.cardinal-components-api:${component}:${project.cardinal_version}"
     }
 
     modImplementation("dev.monarkhes:myron:${project.myron_version}") {
@@ -121,29 +121,18 @@ dependencies {
     // Runtime dependencies (compatibility testing mostly)
 
     if (isTerraformersMCMavenUp()) {
-        modRuntime("com.terraformersmc:modmenu:${project.modmenu_version}") {
+        modRuntimeOnly("com.terraformersmc:modmenu:${project.modmenu_version}") {
             exclude group: "net.fabricmc.fabric-api"
         }
     }
 
-    // Only use canvas if the com.kneelawk.magicalmahou.usecanvas system property is set
-    if (Boolean.parseBoolean(System.getProperty("com.kneelawk.magicalmahou.usecanvas", "false"))) {
-        modRuntime("grondag:canvas-mc117-1.17:${project.canvas_version}") {
-            exclude group: "net.fabricmc.fabric-api"
-        }
-        modRuntime("grondag:bitraster:${project.bitraster_version}") {
-            exclude group: "net.fabricmc.fabric-api"
-        }
-    }
-
-    modRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+    modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
         exclude group: "net.fabricmc.fabric-api"
     }
-    modRuntime("dev.architectury:architectury-fabric:${project.architectury_version}") {
+    modRuntimeOnly("dev.architectury:architectury-fabric:${project.architectury_version}") {
         exclude group: "net.fabricmc.fabric-api"
     }
 
-    compileOnly "org.apiguardian:apiguardian-api:${project.apiguardian_version}"
     compileOnly "com.google.code.findbugs:jsr305:${project.jsr305_version}"
     compileOnly "com.demonwav.mcdev:annotations:${project.mcdev_annotations_version}"
 }
@@ -172,12 +161,8 @@ tasks.withType(JavaCompile) {
     it.options.release = 16
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = "sources"
-    from sourceSets.main.allSource
+java {
+    withSourcesJar()
 }
 
 jar {
@@ -197,12 +182,11 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             // add all the jars that should be included when publishing to maven
-            artifact(remapJar) {
-                builtBy remapJar
-            }
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
+            groupId = project.maven_group
+            artifactId = project.name
+            version = project.mod_version
+
+            from(components['java'])
         }
     }
 
