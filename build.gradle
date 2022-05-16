@@ -1,4 +1,4 @@
-import com.modrinth.minotaur.TaskModrinthUpload
+import com.modrinth.minotaur.dependencies.ModDependency
 
 plugins {
     id 'fabric-loom'
@@ -228,22 +228,24 @@ if (System.getenv("CURSE_API_KEY") != null) {
     }
 }
 
-if (System.getenv("MODRINTH_API_KEY") != null) {
-    task publishModrinth(type: TaskModrinthUpload, dependsOn: remapJar) {
-        group 'Upload'
-        description 'Publish this mod to Modrinth'
-
-        token = System.getenv("MODRINTH_API_KEY")
-        projectId = 'CqZmZ0Hh'
-        versionNumber = project.mod_version
-        uploadFile = remapJar
-        versionType = project.mod_release_type
-        changelog = file("changelogs/changelog-${project.mod_version}.md").text
-        project.publish_minecraft_versions.split(",").toList().forEach {
-            addGameVersion it.trim()
-        }
-        addLoader 'fabric'
+modrinth {
+    token = System.getenv("MODRINTH_API_KEY")
+    projectId = 'CqZmZ0Hh'
+    versionNumber = project.mod_version
+    versionType = project.mod_release_type
+    File changelogFile = rootProject.file("changelogs/changelog-${mod_version}.md")
+    if (changelogFile.exists()) {
+        changelog = changelogFile.text
     }
+    uploadFile = remapJar
+    additionalFiles = [sourcesJar]
+    gameVersions = Arrays.asList(project.publish_minecraft_versions.split("\\s*,\\s*"))
+    loaders = ['fabric']
+    dependencies = [
+            new ModDependency('P7dR8mSH', 'required'), // fabric api
+            new ModDependency('Ha28R6CL', 'required')  // fabric language kotlin
+    ]
+    syncBodyFrom = rootProject.file("README.md").text
 }
 
 static boolean isTerraformersMCMavenUp() {
