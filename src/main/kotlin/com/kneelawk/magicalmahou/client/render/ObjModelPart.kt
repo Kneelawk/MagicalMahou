@@ -8,7 +8,7 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Quaternion
 import net.minecraft.util.math.Vec3f
-import java.util.*
+import net.minecraft.util.math.random.Random
 
 class ObjModelPart(private val parts: List<ObjPart>, private val children: Map<String, ModelPart>) :
     ModelPart(listOf(), children) {
@@ -22,7 +22,7 @@ class ObjModelPart(private val parts: List<ObjPart>, private val children: Map<S
                 newEntry.positionMatrix.multiplyByTranslation(pos.x, pos.y, pos.z)
                 newEntry.positionMatrix.multiply(rot)
                 newEntry.normalMatrix.multiply(rot)
-                model.getQuads(null, null, Random()).forEach { quad ->
+                model.getQuads(null, null, Random.create()).forEach { quad ->
                     RenderUtils.quad(
                         vertexConsumer, newEntry, quad, red, green, blue, alpha, light, overlay
                     )

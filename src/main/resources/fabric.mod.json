@@ -49,7 +49,7 @@
     "cardinal-components-entity": ">=4.1.0",
     "myron": ">=1.6.0",
     "libnetworkstack": ">=0.6.0",
-    "minecraft": "1.18.x"
+    "minecraft": ">=1.19"
   },
   "suggests": {
     "flamingo": "*"

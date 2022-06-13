@@ -1,19 +1,17 @@
 package com.kneelawk.magicalmahou.block
 
-import com.kneelawk.magicalmahou.screenhandler.CrystalBallScreenHandler
 import com.kneelawk.magicalmahou.screenhandler.MMScreenHandlers
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.particle.ParticleTypes
 import net.minecraft.screen.NamedScreenHandlerFactory
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.random.Random
 import net.minecraft.world.World
-import java.util.*
 
 class CrystalBallBlock(settings: Settings) : Block(settings) {
     override fun onUse(

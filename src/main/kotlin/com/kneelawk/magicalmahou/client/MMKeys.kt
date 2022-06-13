@@ -7,7 +7,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
-import net.minecraft.text.LiteralText
+import net.minecraft.text.LiteralTextContent
+import net.minecraft.text.MutableText
 import org.lwjgl.glfw.GLFW
 
 object MMKeys {
@@ -38,9 +39,9 @@ object MMKeys {
         ClientTickEvents.END_CLIENT_TICK.register { client ->
             while (PRINT_SKIN.wasPressed()) {
                 client.player?.let { player ->
-                    player.sendMessage(LiteralText("Printing skin..."), false)
+                    player.sendMessage(MutableText.of(LiteralTextContent("Printing skin...")), false)
                     SkinUtils.storePlayerSkin(SaveDirUtils.getPlayerIdStr(player), player.uuid, player.world)
-                    player.sendMessage(LiteralText("Skin printed."), false)
+                    player.sendMessage(MutableText.of(LiteralTextContent("Skin printed.")), false)
                 }
             }
 

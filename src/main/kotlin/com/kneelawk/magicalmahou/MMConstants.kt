@@ -1,7 +1,7 @@
 package com.kneelawk.magicalmahou
 
 import net.minecraft.text.MutableText
-import net.minecraft.text.TranslatableText
+import net.minecraft.text.TranslatableTextContent
 import net.minecraft.util.Identifier
 
 object MMConstants {
@@ -18,7 +18,7 @@ object MMConstants {
     }
 
     fun tt(prefix: String, suffix: String, vararg args: Any?): MutableText {
-        return TranslatableText("$prefix.$MOD_ID.$suffix", *args)
+        return MutableText.of(TranslatableTextContent("$prefix.$MOD_ID.$suffix", *args))
     }
 
     fun gui(suffix: String, vararg args: Any?): MutableText {

@@ -87,8 +87,7 @@ object IconRenderingUtils {
         buffer.vertex(model, (x + adjWidth).toFloat(), (y + adjHeight).toFloat(), 0f).texture(u2, v2).next()
         buffer.vertex(model, (x + adjWidth).toFloat(), y.toFloat(), 0f).texture(u2, v1).next()
         buffer.vertex(model, x.toFloat(), y.toFloat(), 0f).texture(u1, v1).next()
-        buffer.end()
-        BufferRenderer.draw(buffer)
+        BufferRenderer.drawWithShader(buffer.end())
         RenderSystem.disableBlend()
         RenderSystem.defaultBlendFunc()
     }

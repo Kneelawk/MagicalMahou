@@ -62,9 +62,8 @@ class FramebufferIcon(
 //        buf.vertex((x + width).toDouble(), y.toDouble(), 0.0).texture(1f, 0f).next()
 //        buf.vertex(x.toDouble(), y.toDouble(), 0.0).texture(0f, 0f).next()
         drawToConsumer(buf, matrices, x, y, height, width)
-        buf.end()
 
-        BufferRenderer.draw(buf)
+        BufferRenderer.drawWithShader(buf.end())
 
         if (useTransparency) {
             RenderSystem.disableBlend()
@@ -84,8 +83,10 @@ class FramebufferIcon(
         x: Int, y: Int, height: Int, width: Int
     ) {
         consumer.vertex(matrices.peek().positionMatrix, x.toFloat(), y.toFloat(), 0.0f).texture(0f, 1f).next()
-        consumer.vertex(matrices.peek().positionMatrix, x.toFloat(), (y + height).toFloat(), 0.0f).texture(0f, 0f).next()
-        consumer.vertex(matrices.peek().positionMatrix, (x + width).toFloat(), (y + height).toFloat(), 0.0f).texture(1f, 0f)
+        consumer.vertex(matrices.peek().positionMatrix, x.toFloat(), (y + height).toFloat(), 0.0f).texture(0f, 0f)
+            .next()
+        consumer.vertex(matrices.peek().positionMatrix, (x + width).toFloat(), (y + height).toFloat(), 0.0f)
+            .texture(1f, 0f)
             .next()
         consumer.vertex(matrices.peek().positionMatrix, (x + width).toFloat(), y.toFloat(), 0.0f).texture(1f, 1f).next()
     }

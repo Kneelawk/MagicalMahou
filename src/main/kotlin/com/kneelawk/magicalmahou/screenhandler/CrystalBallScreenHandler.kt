@@ -18,7 +18,8 @@ import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import io.github.cottonmc.cotton.gui.widget.data.Insets
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.screen.NamedScreenHandlerFactory
-import net.minecraft.text.LiteralText
+import net.minecraft.text.LiteralTextContent
+import net.minecraft.text.MutableText
 import kotlin.math.min
 
 class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
@@ -91,7 +92,7 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
         val skinPanel = WGridPanel()
         skinPanel.insets = Insets.ROOT_PANEL
 
-        val skinBackButton = WScalableButton(LiteralText("<-"))
+        val skinBackButton = WScalableButton(MutableText.of(LiteralTextContent("<-")))
         skinPanel.add(skinBackButton, 0, 0, 1, 1)
         skinBackButton.onClick = {
             root.selectedIndex = 1
@@ -125,7 +126,7 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
         val abilityPanel = WGridPanel()
         abilityPanel.insets = Insets.ROOT_PANEL
 
-        val abilityBackButton = WScalableButton(LiteralText("<-"))
+        val abilityBackButton = WScalableButton(MutableText.of(LiteralTextContent("<-")))
         abilityPanel.add(abilityBackButton, 0, 0, 1, 1)
         abilityBackButton.onClick = {
             root.selectedIndex = 1
@@ -151,7 +152,7 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
 
         abilityPanel.add(abilityButtonsPanel, 0, 3, ABILITIES_PER_PAGE, 1)
 
-        val abilityPageBackButton = WScalableButton(LiteralText("<"))
+        val abilityPageBackButton = WScalableButton(MutableText.of(LiteralTextContent("<")))
         abilityPanel.add(abilityPageBackButton, 0, 4, 1, 1)
         abilityPageBackButton.enabled = abilityButtonsPanel.selectedIndex > 0
         abilityPageBackButton.onClick = {
@@ -161,7 +162,7 @@ class CrystalBallScreenHandler(syncId: Int, inventory: PlayerInventory) :
             abilityPageBackButton.enabled = abilityButtonsPanel.selectedIndex > 0
         }
 
-        val abilityPageForwardButton = WScalableButton(LiteralText(">"))
+        val abilityPageForwardButton = WScalableButton(MutableText.of(LiteralTextContent(">")))
         abilityPanel.add(abilityPageForwardButton, ABILITIES_PER_PAGE - 1, 4, 1, 1)
         abilityPageForwardButton.enabled = abilityButtonsPanel.selectedIndex < (abilitiesCount - 1) / ABILITIES_PER_PAGE
         abilityPageForwardButton.onClick = {

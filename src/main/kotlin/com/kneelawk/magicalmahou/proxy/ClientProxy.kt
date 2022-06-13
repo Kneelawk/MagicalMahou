@@ -13,7 +13,8 @@ import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.network.AbstractClientPlayerEntity
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.text.TranslatableText
+import net.minecraft.text.MutableText
+import net.minecraft.text.TranslatableTextContent
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.io.File
@@ -73,12 +74,15 @@ object ClientProxy : CommonProxy {
                         } catch (e: InvalidSkinException) {
                             when (e) {
                                 is InvalidSkinException.BadImage -> player.sendMessage(
-                                    TranslatableText("message.magical-mahou.bad-image", e.cause), false
+                                    MutableText.of(TranslatableTextContent("message.magical-mahou.bad-image", e.cause)),
+                                    false
                                 )
                                 is InvalidSkinException.WrongDimensions -> player.sendMessage(
-                                    TranslatableText(
-                                        "message.magical-mahou.player-skin-wrong-dimensions", e.providedWidth,
-                                        e.providedHeight
+                                    MutableText.of(
+                                        TranslatableTextContent(
+                                            "message.magical-mahou.player-skin-wrong-dimensions", e.providedWidth,
+                                            e.providedHeight
+                                        )
                                     ), false
                                 )
                             }

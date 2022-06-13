@@ -21,7 +21,7 @@ object RenderUtils {
         val vertexCount = vertexData.size / 8
 
         MemoryStack.stackPush().use { memoryStack ->
-            val byteBuffer = memoryStack.malloc(VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.vertexSize)
+            val byteBuffer = memoryStack.malloc(VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL.vertexSizeByte)
             val intBuffer = byteBuffer.asIntBuffer()
 
             for (vertex in 0 until vertexCount) {

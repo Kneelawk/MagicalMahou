@@ -12,7 +12,8 @@ import io.github.cottonmc.cotton.gui.SyncedGuiDescription
 import io.github.cottonmc.cotton.gui.widget.WGridPanel
 import io.github.cottonmc.cotton.gui.widget.data.HorizontalAlignment
 import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.text.LiteralText
+import net.minecraft.text.LiteralTextContent
+import net.minecraft.text.MutableText
 
 class LongFallScreenHandler(syncId: Int, inventory: PlayerInventory) :
     SyncedGuiDescription(MMScreenHandlers.LONG_FALL, syncId, inventory) {
@@ -36,7 +37,7 @@ class LongFallScreenHandler(syncId: Int, inventory: PlayerInventory) :
         titleAlignment = HorizontalAlignment.CENTER
         val root = rootPanel as WGridPanel
 
-        val backButton = WScalableButton(LiteralText("<-"))
+        val backButton = WScalableButton(MutableText.of(LiteralTextContent("<-")))
         root.add(backButton, 0, 0, 1, 1)
         backButton.onClick = {
             MMProxy.getProxy().presetCursorPosition()
