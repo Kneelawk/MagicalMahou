@@ -69,6 +69,9 @@ repositories {
         name = "Haven-King"
         url = "https://hephaestus.dev/release"
     }
+    flatDir {
+        dirs "libs"
+    }
 }
 
 dependencies {
