@@ -58,7 +58,7 @@ jobs:
           script: |
             let fullVersion = process.env.TAG_VERSION;
             let versions = fullVersion.split('+');
-            let mavenVersion = fullVersion.substring(1);
+            let modVersion = fullVersion.substring(1);
             let lines = process.env.CHANGELOG.split('\n');
             let changesStart = lines.findIndex(line => line.startsWith('*'));
             lines.splice(0, changesStart);
