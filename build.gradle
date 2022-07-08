@@ -219,7 +219,7 @@ if (System.getenv("CURSE_API_KEY") != null) {
         project {
             id = '499532'
             changelogType = 'markdown'
-            changelog = file("changelogs/changelog-${modVersion}.md")
+            changelog = file("changelogs/changelog-v${modVersion}.md")
             releaseType = project.mod_release_type
             project.publish_minecraft_versions.split(",").toList().forEach {
                 addGameVersion it.trim()
@@ -247,7 +247,7 @@ modrinth {
     projectId = 'CqZmZ0Hh'
     versionNumber = modVersion
     versionType = project.mod_release_type
-    File changelogFile = rootProject.file("changelogs/changelog-${modVersion}.md")
+    File changelogFile = rootProject.file("changelogs/changelog-v${modVersion}.md")
     if (changelogFile.exists()) {
         changelog = changelogFile.text
     }
