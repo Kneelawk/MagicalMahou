@@ -3,3 +3,5 @@
 Magical Mahou version 0.2.0 for Minecraft 1.19
 
 * Updated to Minecraft 1.19.
+* Changed versioning scheme to include Minecraft version.
+* Renamed Long Fall ability to Feather Fall.
