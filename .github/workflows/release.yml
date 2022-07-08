@@ -64,7 +64,7 @@ jobs:
             lines.splice(0, changesStart);
             lines.unshift(`**Magical Mahou ${versions[0]} has been released for Minecraft ${versions[1]}!**`, '', '__Changes:__');
             lines.push(`Available on Modrinth: https://modrinth.com/mod/magical-mahou/version/${modVersion}`);
-            lines.push('Available on CurseForge: https://www.curseforge.com/minecraft/mc-mods/magical-mahou/files');
+            lines.push('Available on CurseForge: https://www.curseforge.com/minecraft/mc-mods/magical-mahou');
             return lines.join('\n');
           result-encoding: string
       - name: Make Release Announcement
