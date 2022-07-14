@@ -80,6 +80,11 @@ repositories {
         name = "Haven-King"
         url = "https://hephaestus.dev/release"
     }
+    maven {
+        // Custom LNS builds
+        name = "Kneelawk"
+        url = "https://kneelawk.com/maven"
+    }
     flatDir {
         dirs "libs"
     }
