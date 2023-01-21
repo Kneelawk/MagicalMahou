@@ -7,8 +7,8 @@ import com.kneelawk.magicalmahou.particle.MMParticles
 import com.kneelawk.magicalmahou.screenhandler.MMScreenHandlers
 
 fun init() {
-    MMItems.init()
     MMBlocks.init()
+    MMItems.init()
     MMScreenHandlers.init()
     MMParticles.init()
     MMComponents.mmInit()

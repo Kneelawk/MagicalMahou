@@ -10,16 +10,13 @@ import net.minecraft.registry.Registries
 import net.minecraft.registry.Registry
 
 object MMBlocks {
-    lateinit var CRYSTAL_BALL: CrystalBallBlock
-        private set
+    private val crystalBallSettings =
+        FabricBlockSettings.of(Material.GLASS).mapColor(MapColor.PURPLE).requiresTool().strength(50.0F, 1200.0F)
+            .nonOpaque()
+
+    val CRYSTAL_BALL: CrystalBallBlock by lazy { CrystalBallBlock(crystalBallSettings) }
 
     fun init() {
-        val crystalBallSettings =
-            FabricBlockSettings.of(Material.GLASS).mapColor(MapColor.PURPLE).requiresTool().strength(50.0F, 1200.0F)
-                .nonOpaque()
-
-        CRYSTAL_BALL = CrystalBallBlock(crystalBallSettings)
-
         Registry.register(Registries.BLOCK, id("crystal_ball"), CRYSTAL_BALL)
         Registry.register(Registries.ITEM, id("crystal_ball"), BlockItem(CRYSTAL_BALL, MMItems.ITEM_SETTINGS))
     }
