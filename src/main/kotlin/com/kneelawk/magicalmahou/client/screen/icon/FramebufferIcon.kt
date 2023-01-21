@@ -20,25 +20,29 @@ class FramebufferIcon(
     private val fbHeight = baseHeight * scale
     val framebuffer: Framebuffer = SimpleFramebuffer(fbWidth, fbHeight, true, MinecraftClient.IS_SYSTEM_MAC)
 
-    private val texture = RenderPhase.TextureBase({ RenderSystem.setShaderTexture(0, framebuffer.colorAttachment) }, {})
+    private class Layers(framebuffer: Framebuffer, useTransparency: Boolean) : RenderPhase("FramebufferIcon", {}, {}) {
+        private val texture = TextureBase({ RenderSystem.setShaderTexture(0, framebuffer.colorAttachment) }, {})
 
-    private val renderLayer: RenderLayer = RenderLayerHelper.of(
-        str("framebuffer_icon"),
-        VertexFormats.POSITION_TEXTURE,
-        VertexFormat.DrawMode.QUADS,
-        1 shl 12,
-        false,
-        true,
-        RenderLayer.MultiPhaseParameters.builder().shader(RenderLayerHelper.getPositionTextureShader())
-            .transparency(
-                if (useTransparency) {
-                    RenderLayerHelper.getTranslucentTransparency()
-                } else {
-                    RenderLayerHelper.getNoTransparency()
-                }
-            )
-            .texture(texture).build(false)
-    )
+        val renderLayer: RenderLayer = RenderLayerHelper.of(
+            str("framebuffer_icon"),
+            VertexFormats.POSITION_TEXTURE,
+            VertexFormat.DrawMode.QUADS,
+            1 shl 12,
+            false,
+            true,
+            RenderLayer.MultiPhaseParameters.builder().program(POSITION_TEXTURE_PROGRAM)
+                .transparency(
+                    if (useTransparency) {
+                        TRANSLUCENT_TRANSPARENCY
+                    } else {
+                        NO_TRANSPARENCY
+                    }
+                )
+                .texture(texture).build(false)
+        )
+    }
+
+    private val layers: Layers = Layers(framebuffer, useTransparency)
 
     override fun paint(matrices: MatrixStack, x: Int, y: Int, width: Int, height: Int) {
         val tess = Tessellator.getInstance()
@@ -54,7 +58,7 @@ class FramebufferIcon(
 
         RenderSystem.setShaderTexture(0, framebuffer.colorAttachment)
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f)
-        RenderSystem.setShader(GameRenderer::getPositionTexShader)
+        RenderSystem.setShader(GameRenderer::getPositionTexProgram)
 
         buf.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)
 //        buf.vertex(x.toDouble(), (y + height).toDouble(), 0.0).texture(0f, 1f).next()
@@ -63,7 +67,7 @@ class FramebufferIcon(
 //        buf.vertex(x.toDouble(), y.toDouble(), 0.0).texture(0f, 0f).next()
         drawToConsumer(buf, matrices, x, y, height, width)
 
-        BufferRenderer.drawWithShader(buf.end())
+        tess.draw()
 
         if (useTransparency) {
             RenderSystem.disableBlend()
@@ -74,7 +78,7 @@ class FramebufferIcon(
     override fun paint(
         matrices: MatrixStack, consumers: VertexConsumerProvider, x: Int, y: Int, width: Int, height: Int
     ) {
-        val buf = consumers.getBuffer(renderLayer)
+        val buf = consumers.getBuffer(layers.renderLayer)
         drawToConsumer(buf, matrices, x, y, height, width)
     }
 

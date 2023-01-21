@@ -81,13 +81,13 @@ object IconRenderingUtils {
             GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA,
             GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA
         )
-        RenderSystem.setShader(GameRenderer::getPositionTexShader)
+        RenderSystem.setShader(GameRenderer::getPositionTexProgram)
         buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE)
         buffer.vertex(model, x.toFloat(), (y + adjHeight).toFloat(), 0f).texture(u1, v2).next()
         buffer.vertex(model, (x + adjWidth).toFloat(), (y + adjHeight).toFloat(), 0f).texture(u2, v2).next()
         buffer.vertex(model, (x + adjWidth).toFloat(), y.toFloat(), 0f).texture(u2, v1).next()
         buffer.vertex(model, x.toFloat(), y.toFloat(), 0f).texture(u1, v1).next()
-        BufferRenderer.drawWithShader(buffer.end())
+        tessellator.draw()
         RenderSystem.disableBlend()
         RenderSystem.defaultBlendFunc()
     }

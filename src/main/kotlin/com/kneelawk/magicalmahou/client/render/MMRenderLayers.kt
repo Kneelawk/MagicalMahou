@@ -9,21 +9,23 @@ import net.minecraft.client.render.VertexFormats
 import net.minecraft.util.Identifier
 import net.minecraft.util.Util
 
-object MMRenderLayers {
-    private val ICON = Util.memoize<Identifier, RenderLayer> { texture ->
-        val multiPhaseParameters = RenderLayer.MultiPhaseParameters.builder()
-            .texture(RenderPhase.Texture(texture, false, false))
-            .transparency(RenderLayerHelper.getTranslucentTransparency())
-            .build(true)
+class MMRenderLayers private constructor() : RenderPhase("MMRenderLayers", {}, {}) {
+    companion object {
+        private val ICON = Util.memoize<Identifier, RenderLayer> { texture ->
+            val multiPhaseParameters = RenderLayer.MultiPhaseParameters.builder()
+                .texture(Texture(texture, false, false))
+                .transparency(TRANSLUCENT_TRANSPARENCY)
+                .build(true)
 
-        RenderLayerHelper.of(
-            str("icon"), VertexFormats.POSITION_COLOR_TEXTURE, VertexFormat.DrawMode.QUADS, 256, true,
-            false,
-            multiPhaseParameters
-        )
-    }
+            RenderLayerHelper.of(
+                str("icon"), VertexFormats.POSITION_COLOR_TEXTURE, VertexFormat.DrawMode.QUADS, 256, true,
+                false,
+                multiPhaseParameters
+            )
+        }
 
-    fun getIcon(texture: Identifier): RenderLayer {
-        return ICON.apply(texture)
+        fun getIcon(texture: Identifier): RenderLayer {
+            return ICON.apply(texture)
+        }
     }
 }

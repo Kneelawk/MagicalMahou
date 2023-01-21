@@ -12,8 +12,7 @@
     "MouseAccessor",
     "PlayerEntityRendererMixin",
     "PlayerSkinTextureAccessor",
-    "RenderLayerAccessor",
-    "RenderPhaseAccessor"
+    "RenderLayerAccessor"
   ],
   "server": [
   ],

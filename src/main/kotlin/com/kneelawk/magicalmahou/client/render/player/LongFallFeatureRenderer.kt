@@ -14,7 +14,8 @@ import net.minecraft.client.render.entity.model.BipedEntityModel
 import net.minecraft.client.render.entity.model.EntityModelPartNames
 import net.minecraft.client.render.entity.model.PlayerEntityModel
 import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.math.Vec3f
+import org.joml.Quaternionf
+import org.joml.Vector3f
 
 class LongFallFeatureRenderer(
     ctx: FeatureRendererContext<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>>
@@ -33,8 +34,8 @@ class LongFallFeatureRenderer(
                 EntityModelPartNames.RIGHT_LEG to ObjModelPart(
                     listOf(
                         ObjModelPart.ObjPart(
-                            MMConstants.id("models/misc/long_fall"), Vec3f(0f, 8f / 16f, 0f),
-                            Vec3f.POSITIVE_Y.getDegreesQuaternion(-45f)
+                            MMConstants.id("models/misc/long_fall"), Vector3f(0f, 8f / 16f, 0f),
+                            Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, -45f)
                         )
                     ),
                     mapOf()
@@ -42,8 +43,8 @@ class LongFallFeatureRenderer(
                 EntityModelPartNames.LEFT_LEG to ObjModelPart(
                     listOf(
                         ObjModelPart.ObjPart(
-                            MMConstants.id("models/misc/long_fall"), Vec3f(0f, 8f / 16f, 0f),
-                            Vec3f.POSITIVE_Y.getDegreesQuaternion(45f)
+                            MMConstants.id("models/misc/long_fall"), Vector3f(0f, 8f / 16f, 0f),
+                            Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, 45f)
                         )
                     ),
                     mapOf()
@@ -62,7 +63,7 @@ class LongFallFeatureRenderer(
         val longFall = MMComponents.LONG_FALL[entity]
 
         if (longFall.isActuallyEnabled()) {
-            contextModel.setAttributes(model)
+            contextModel.copyBipedStateTo(model)
 
             val consumer = vertexConsumers.getBuffer(RenderLayer.getCutout())
             val overlay = LivingEntityRenderer.getOverlay(entity, 0.0f)

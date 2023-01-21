@@ -16,8 +16,8 @@ import net.minecraft.client.render.entity.model.BipedEntityModel
 import net.minecraft.client.render.entity.model.EntityModelPartNames
 import net.minecraft.client.render.entity.model.PlayerEntityModel
 import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.math.Quaternion
-import net.minecraft.util.math.Vec3f
+import org.joml.Quaternionf
+import org.joml.Vector3f
 
 @Environment(EnvType.CLIENT)
 class CatEarsFeatureRenderer(
@@ -32,8 +32,8 @@ class CatEarsFeatureRenderer(
                 EntityModelPartNames.HEAD to ObjModelPart(
                     listOf(
                         ObjModelPart.ObjPart(
-                            id("models/misc/cat_ears"), Vec3f(0f, -0.5f, 0f),
-                            Quaternion.IDENTITY
+                            id("models/misc/cat_ears"), Vector3f(0f, -0.5f, 0f),
+                            Quaternionf()
                         )
                     ),
                     mapOf()
@@ -59,7 +59,7 @@ class CatEarsFeatureRenderer(
 
         if (catEars.isActuallyEnabled()) {
             // This does all the rotation and positioning for me!
-            contextModel.setAttributes(entityModel)
+            contextModel.copyBipedStateTo(entityModel)
 
             val consumer = vertexConsumers.getBuffer(RenderLayer.getCutout())
             val overlay = LivingEntityRenderer.getOverlay(entity, 0.0f)

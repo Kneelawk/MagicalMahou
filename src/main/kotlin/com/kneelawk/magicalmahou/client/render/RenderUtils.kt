@@ -4,8 +4,8 @@ import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.render.VertexFormats
 import net.minecraft.client.render.model.BakedQuad
 import net.minecraft.client.util.math.MatrixStack
-import net.minecraft.util.math.Vec3f
-import net.minecraft.util.math.Vector4f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.system.MemoryStack
 
 object RenderUtils {
@@ -15,9 +15,9 @@ object RenderUtils {
     ) {
         val vertexData = quad.vertexData
         val normInt = quad.face.vector
-        val normal = Vec3f(normInt.x.toFloat(), normInt.y.toFloat(), normInt.z.toFloat())
+        val normal = Vector3f(normInt.x.toFloat(), normInt.y.toFloat(), normInt.z.toFloat())
         val modelMatrix = matrixEntry.positionMatrix
-        normal.transform(matrixEntry.normalMatrix)
+        normal.mul(matrixEntry.normalMatrix)
         val vertexCount = vertexData.size / 8
 
         MemoryStack.stackPush().use { memoryStack ->
@@ -35,7 +35,7 @@ object RenderUtils {
                 val v: Float = byteBuffer.getFloat(20)
 
                 val position = Vector4f(posX, posY, posZ, 1.0f)
-                position.transform(modelMatrix)
+                position.mul(modelMatrix)
 
                 consumer.vertex(
                     position.x, position.y, position.z, red, green, blue, alpha, u, v, overlay, light, normal.x,
