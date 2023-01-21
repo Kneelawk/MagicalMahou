@@ -1,7 +1,7 @@
 package com.kneelawk.magicalmahou.client.render
 
 import com.kneelawk.magicalmahou.mixin.api.MatrixStackUtils
-import dev.monarkhes.myron.api.Myron
+import com.ultreon.mods.myron.api.Myron
 import net.minecraft.client.model.ModelPart
 import net.minecraft.client.render.VertexConsumer
 import net.minecraft.client.util.math.MatrixStack

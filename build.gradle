@@ -85,8 +85,13 @@ repositories {
         name = "Kneelawk"
         url = "https://kneelawk.com/maven"
     }
-    flatDir {
-        dirs "libs"
+    maven {
+        // Myron
+        name = "JitPack"
+        url = "https://jitpack.io"
+        content {
+            includeGroup "com.github.RandomMcSomethin"
+        }
     }
     mavenLocal()
 }
@@ -127,10 +132,14 @@ dependencies {
         include "dev.onyxstudios.cardinal-components-api:${component}:${project.cardinal_version}"
     }
 
-    modImplementation("dev.monarkhes:myron:${project.myron_version}") {
+//    modImplementation("dev.monarkhes:myron:${project.myron_version}") {
+//        exclude group: 'net.fabricmc.fabric-api'
+//    }
+//    include "dev.monarkhes:myron:${project.myron_version}"
+    modImplementation("com.github.RandomMcSomethin:myron-updated:${project.myron_version}") {
         exclude group: 'net.fabricmc.fabric-api'
     }
-    include "dev.monarkhes:myron:${project.myron_version}"
+    include "com.github.RandomMcSomethin:myron-updated:${project.myron_version}"
 
     modImplementation("alexiil.mc.lib:libnetworkstack-base:${project.lns_version}") {
         exclude group: 'net.fabricmc.fabric-api'
