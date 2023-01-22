@@ -1,0 +1,17 @@
+{
+  "__comment": "Cursed work around to get textures on my obj player features because Myron wants all its textures on the block-atlas.",
+  "sources": [
+    {
+      "type": "single",
+      "resource": "magical-mahou:misc/cat_ears"
+    },
+    {
+      "type": "single",
+      "resource": "magical-mahou:misc/long_fall"
+    },
+    {
+      "type": "single",
+      "resource": "magical-mahou:misc/teleport_at"
+    }
+  ]
+}
